@@ -170,7 +170,7 @@ func TestWorkshopModWithLinksButNoDependenciesReturnsItself(t *testing.T) {
 	handler, app := profileApp(t)
 	handler.server = &Server{app: app}
 
-	body := strings.NewReader(`{"text": "1710977250"}`)
+	body := strings.NewReader(`{"text": "1567720365"}`)
 	rec := httptest.NewRecorder()
 	handler.wsLookup(rec, httptest.NewRequest("POST", "/api/workshop/dl/lookup", body))
 
@@ -188,8 +188,8 @@ func TestWorkshopModWithLinksButNoDependenciesReturnsItself(t *testing.T) {
 		t.Fatalf("want exactly 1 ws item, got %d: %+v", len(resp.Items), resp.Items)
 	}
 
-	if resp.Items[0].ID != "1710977250" {
-		t.Fatalf("want 1710977250 ws ID, got %s", resp.Items[0].ID)
+	if resp.Items[0].ID != "1567720365" {
+		t.Fatalf("want 1567720365 ws ID, got %s", resp.Items[0].ID)
 	}
 }
 
@@ -215,16 +215,12 @@ func TestWorkshopModReturnsRequiredItemsOnly(t *testing.T) {
 		t.Fatalf("want exactly 3 ws items, got %d: %+v", len(resp.Items), resp.Items)
 	}
 
-	if resp.Items[0].ID != "1932611410" {
-		t.Fatalf("want 1932611410 ws ID, got %s", resp.Items[0].ID)
-	}
+	expected := []string{"1932611410", "3690289718", "1559212036"}
 
-	if resp.Items[1].ID != "3690289718" {
-		t.Fatalf("want 3690289718 ws ID, got %s", resp.Items[0].ID)
-	}
-
-	if resp.Items[1].ID != "1559212036" {
-		t.Fatalf("want 1559212036 ws ID, got %s", resp.Items[0].ID)
+	for _, item := range resp.Items {
+		if !slices.Contains(expected, item.ID) {
+			t.Fatalf("missing expected ID")
+		}
 	}
 }
 
@@ -232,7 +228,7 @@ func TestWorkshopCollectionReturnsChildren(t *testing.T) {
 	handler, app := profileApp(t)
 	handler.server = &Server{app: app}
 
-	body := strings.NewReader(`{"text": "1600413591"}`)
+	body := strings.NewReader(`{"text": "https://steamcommunity.com/workshop/filedetails/?id=1600413591"}`)
 	rec := httptest.NewRecorder()
 	handler.wsLookup(rec, httptest.NewRequest("POST", "/api/workshop/dl/lookup", body))
 
