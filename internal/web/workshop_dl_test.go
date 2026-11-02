@@ -3,10 +3,13 @@ package web
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -127,5 +130,131 @@ func TestWorkshopListClearAndGone(t *testing.T) {
 	st.job.State = "done"
 	if code := clear(`{}`); code != 200 || st.job != nil {
 		t.Fatalf("clear all: %d %+v", code, st.job)
+	}
+}
+
+type wsLookupResp struct {
+	Items []struct {
+		ID string `json:"id"`
+	} `json:"items"`
+}
+
+func TestWorkshopSingleModReturnsItself(t *testing.T) {
+	handler, app := profileApp(t)
+	handler.server = &Server{app: app}
+
+	body := strings.NewReader(`{"text": "2545327648"}`)
+	rec := httptest.NewRecorder()
+	handler.wsLookup(rec, httptest.NewRequest("POST", "/api/workshop/dl/lookup", body))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("wsLookup failed with code: %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var resp wsLookupResp
+
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("wsLookup bad json: %v: %s", err, rec.Body.String())
+	}
+
+	if len(resp.Items) != 1 {
+		t.Fatalf("want exactly 1 ws item, got %d: %+v", len(resp.Items), resp.Items)
+	}
+
+	if resp.Items[0].ID != "2545327648" {
+		t.Fatalf("want 2545327648 ws ID, got %s", resp.Items[0].ID)
+	}
+}
+
+func TestWorkshopModWithLinksButNoDependenciesReturnsItself(t *testing.T) {
+	handler, app := profileApp(t)
+	handler.server = &Server{app: app}
+
+	body := strings.NewReader(`{"text": "1710977250"}`)
+	rec := httptest.NewRecorder()
+	handler.wsLookup(rec, httptest.NewRequest("POST", "/api/workshop/dl/lookup", body))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("wsLookup failed with code: %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var resp wsLookupResp
+
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("wsLookup bad json: %v: %s", err, rec.Body.String())
+	}
+
+	if len(resp.Items) != 1 {
+		t.Fatalf("want exactly 1 ws item, got %d: %+v", len(resp.Items), resp.Items)
+	}
+
+	if resp.Items[0].ID != "1710977250" {
+		t.Fatalf("want 1710977250 ws ID, got %s", resp.Items[0].ID)
+	}
+}
+
+func TestWorkshopModReturnsRequiredItemsOnly(t *testing.T) {
+	handler, app := profileApp(t)
+	handler.server = &Server{app: app}
+
+	body := strings.NewReader(`{"text": "1932611410"}`)
+	rec := httptest.NewRecorder()
+	handler.wsLookup(rec, httptest.NewRequest("POST", "/api/workshop/dl/lookup", body))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("wsLookup failed with code: %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var resp wsLookupResp
+
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("wsLookup bad json: %v: %s", err, rec.Body.String())
+	}
+
+	if len(resp.Items) != 3 {
+		t.Fatalf("want exactly 3 ws items, got %d: %+v", len(resp.Items), resp.Items)
+	}
+
+	if resp.Items[0].ID != "1932611410" {
+		t.Fatalf("want 1932611410 ws ID, got %s", resp.Items[0].ID)
+	}
+
+	if resp.Items[1].ID != "3690289718" {
+		t.Fatalf("want 3690289718 ws ID, got %s", resp.Items[0].ID)
+	}
+
+	if resp.Items[1].ID != "1559212036" {
+		t.Fatalf("want 1559212036 ws ID, got %s", resp.Items[0].ID)
+	}
+}
+
+func TestWorkshopCollectionReturnsChildren(t *testing.T) {
+	handler, app := profileApp(t)
+	handler.server = &Server{app: app}
+
+	body := strings.NewReader(`{"text": "1600413591"}`)
+	rec := httptest.NewRecorder()
+	handler.wsLookup(rec, httptest.NewRequest("POST", "/api/workshop/dl/lookup", body))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("wsLookup failed with code: %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var resp wsLookupResp
+
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("wsLookup bad json: %v: %s", err, rec.Body.String())
+	}
+
+	if slices.ContainsFunc(resp.Items, func(item struct {
+		ID string "json:\"id\""
+	}) bool {
+		return item.ID == "1600413591"
+	}) {
+		t.Fatalf("should not include collection ID: %+v", resp.Items)
+	}
+
+	if len(resp.Items) != 8 {
+		t.Fatalf("want exactly 8 ws items, got %d: %+v", len(resp.Items), resp.Items)
 	}
 }
