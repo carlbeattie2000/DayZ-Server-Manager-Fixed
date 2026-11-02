@@ -14,6 +14,7 @@ package mods
 
 import (
 	"context"
+	"dayzmanager/internal/util"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,8 +26,10 @@ import (
 )
 
 var (
-	reCollectionID = regexp.MustCompile(`[?&]id=(\d+)`)
-	reChildIDs     = regexp.MustCompile(`sharedfiles/filedetails/\?id=(\d+)`)
+	reCollectionID       = regexp.MustCompile(`[?&]id=(\d+)`)
+	reChildIDs           = regexp.MustCompile(`(?:sharedfiles|workshop)/filedetails/\?id=(\d+)`)
+	reCollectionChildIds = regexp.MustCompile(`sharedfile_(\d+)`)
+	reIsCollection       = regexp.MustCompile(`id="mainContentsCollection"`)
 )
 
 type CollectionResolution struct {
@@ -102,9 +105,22 @@ func FetchCollectionChildren(collectionID string) ([]string, error) {
 		return nil, err
 	}
 
-	seen := map[string]bool{collectionID: true} // don't include the collection itself
+	var isCollection = reIsCollection.Match(body)
+
+	seen := map[string]bool{}
+	var searchBody string
+	var searchRe regexp.Regexp = *reChildIDs
+
+	if isCollection {
+		seen[collectionID] = true
+		searchBody = util.ExtractHTMLContainerByAttr(string(body), "class", "collectionChildren")
+		searchRe = *reCollectionChildIds
+	} else {
+		searchBody = util.ExtractHTMLContainerByAttr(string(body), "id", "RequiredItems")
+	}
+
 	var out []string
-	for _, m := range reChildIDs.FindAllStringSubmatch(string(body), -1) {
+	for _, m := range searchRe.FindAllStringSubmatch(searchBody, -1) {
 		id := m[1]
 		if seen[id] {
 			continue
@@ -112,6 +128,11 @@ func FetchCollectionChildren(collectionID string) ([]string, error) {
 		seen[id] = true
 		out = append(out, id)
 	}
+
+	if !isCollection {
+		out = append(out, collectionID)
+	}
+
 	return out, nil
 }
 
