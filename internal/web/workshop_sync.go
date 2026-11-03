@@ -56,7 +56,11 @@ func (h *handlers) workshopRows(ctx context.Context) ([]wsRow, error) {
 	if len(ids) == 0 {
 		return out, nil
 	}
-	meta, err := mods.FetchWorkshopMeta(ctx, ids)
+	var idsMap map[string]bool
+	for _, id := range ids {
+		idsMap[id] = true
+	}
+	meta, err := mods.FetchWorkshopMeta(ctx, idsMap)
 	if err != nil && len(meta) == 0 {
 		return nil, err
 	}

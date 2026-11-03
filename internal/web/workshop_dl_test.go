@@ -133,10 +133,48 @@ func TestWorkshopListClearAndGone(t *testing.T) {
 	}
 }
 
+type wsLookupWorkshopItemRow struct {
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	Size      int64  `json:"size"`
+	Updated   int64  `json:"updated"`
+	Found     bool   `json:"found"`
+	DayZ      bool   `json:"dayz"`
+	Installed string `json:"installed,omitempty"`
+	Preview   string `json:"preview,omitempty"`
+}
+
 type wsLookupResp struct {
-	Items []struct {
-		ID string `json:"id"`
-	} `json:"items"`
+	Items []wsLookupWorkshopItemRow
+}
+
+func TestWsLookupFindsModMetadata(t *testing.T) {
+	handler, app := profileApp(t)
+	handler.server = &Server{app: app}
+
+	body := strings.NewReader(`{"text": "2545327648"}`)
+	rec := httptest.NewRecorder()
+	handler.wsLookup(rec, httptest.NewRequest("POST", "/api/workshop/dl/lookup", body))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("wsLookup failed with code: %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var resp wsLookupResp
+
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("wsLookup bad json: %v: %s", err, rec.Body.String())
+	}
+
+	var mod wsLookupWorkshopItemRow = resp.Items[0]
+
+	if !mod.Found {
+		t.Fatalf("mod %s was not found", mod.ID)
+	}
+
+	if !mod.DayZ {
+		t.Fatalf("mod %s is not a dayz mod", mod.ID)
+	}
 }
 
 func TestWorkshopSingleModReturnsItself(t *testing.T) {
@@ -163,6 +201,10 @@ func TestWorkshopSingleModReturnsItself(t *testing.T) {
 
 	if resp.Items[0].ID != "2545327648" {
 		t.Fatalf("want 2545327648 ws ID, got %s", resp.Items[0].ID)
+	}
+
+	if !resp.Items[0].Found {
+		t.Fatalf("mod %s was not found", resp.Items[0].ID)
 	}
 }
 
@@ -242,9 +284,7 @@ func TestWorkshopCollectionReturnsChildren(t *testing.T) {
 		t.Fatalf("wsLookup bad json: %v: %s", err, rec.Body.String())
 	}
 
-	if slices.ContainsFunc(resp.Items, func(item struct {
-		ID string "json:\"id\""
-	}) bool {
+	if slices.ContainsFunc(resp.Items, func(item wsLookupWorkshopItemRow) bool {
 		return item.ID == "1600413591"
 	}) {
 		t.Fatalf("should not include collection ID: %+v", resp.Items)

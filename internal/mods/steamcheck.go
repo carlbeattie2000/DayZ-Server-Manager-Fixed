@@ -56,10 +56,10 @@ func (f *flexInt) UnmarshalJSON(b []byte) error {
 // Steam's endpoint accepts up to a few hundred IDs per call; we batch in 100s
 // just to keep request bodies modest and to surface partial progress on
 // failure.
-func FetchWorkshopMeta(ctx context.Context, ids []string) (map[string]WorkshopRemote, error) {
+func FetchWorkshopMeta(ctx context.Context, ids map[string]bool) (map[string]WorkshopRemote, error) {
 	out := map[string]WorkshopRemote{}
 	cleaned := make([]string, 0, len(ids))
-	for _, id := range ids {
+	for id := range ids {
 		id = strings.TrimSpace(id)
 		if id == "" {
 			continue

@@ -62,6 +62,8 @@ type wsState struct {
 	checked  int64
 }
 
+const DayZID = 221100
+
 func (h *handlers) ws() *wsState {
 	s := h.server
 	if s == nil {
@@ -325,10 +327,12 @@ func (h *handlers) wsLookup(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Text string `json:"text"`
 	}
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	ids := workshopIDs(req.Text)
 	if len(ids) == 0 {
 		http.Error(w, "no Workshop links or ids found", http.StatusBadRequest)
@@ -337,41 +341,21 @@ func (h *handlers) wsLookup(w http.ResponseWriter, r *http.Request) {
 	if len(ids) > 200 {
 		ids = ids[:200]
 	}
-	// A collection link looks like an item link: ask for its children.
-	var all []string
-	seen := map[string]bool{}
-	for _, id := range ids {
-		workshopItemMetadata, err := mods.FetchSteamWorkshopItemMetadata(id)
-		//kids, err := mods.FetchCollectionChildren(id)
-		if err == nil {
-			if workshopItemMetadata.IsCollection {
-				children := mods.FetchCollectionChildren(workshopItemMetadata)
 
-				for childID := range children {
-					seen[childID] = true
-				}
+	visitedWorkshopIds := mods.FetchSteamWorkshopItems(ids)
 
-				continue
-			}
-
-			children := mods.FetchModChildren(workshopItemMetadata)
-
-			for childID := range children {
-				seen[childID] = true
-			}
-
-			seen[id] = true
-		}
-	}
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
-	meta, err := mods.FetchWorkshopMeta(ctx, all)
-	if err != nil && len(meta) == 0 {
+
+	modsMetadata, err := mods.FetchWorkshopMeta(ctx, visitedWorkshopIds)
+	if err != nil && len(modsMetadata) == 0 {
 		http.Error(w, "Steam: "+err.Error(), http.StatusBadGateway)
 		return
 	}
+
 	inst := h.installedByID()
-	type row struct {
+
+	type modMetadata struct {
 		ID        string `json:"id"`
 		Title     string `json:"title"`
 		Size      int64  `json:"size"`
@@ -381,15 +365,16 @@ func (h *handlers) wsLookup(w http.ResponseWriter, r *http.Request) {
 		Installed string `json:"installed,omitempty"`
 		Preview   string `json:"preview,omitempty"`
 	}
-	out := make([]row, 0, len(all))
-	for id := range seen {
-		m, ok := meta[id]
-		rr := row{ID: id, Installed: inst[id]}
-		if ok && m.Result == 1 {
-			rr.Found, rr.Title, rr.Size, rr.Preview = true, m.Title, m.FileSize, m.Preview
-			rr.DayZ = m.AppID == 0 || m.AppID == 221100
-			if !m.TimeUpdated.IsZero() {
-				rr.Updated = m.TimeUpdated.Unix()
+
+	out := make([]modMetadata, 0, len(visitedWorkshopIds))
+	for id := range visitedWorkshopIds {
+		metadata, ok := modsMetadata[id]
+		rr := modMetadata{ID: id, Installed: inst[id]}
+		if ok && metadata.Result == 1 {
+			rr.Found, rr.Title, rr.Size, rr.Preview = true, metadata.Title, metadata.FileSize, metadata.Preview
+			rr.DayZ = metadata.AppID == DayZID
+			if !metadata.TimeUpdated.IsZero() {
+				rr.Updated = metadata.TimeUpdated.Unix()
 			}
 		}
 		out = append(out, rr)

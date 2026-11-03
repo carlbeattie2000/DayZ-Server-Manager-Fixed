@@ -74,7 +74,7 @@ func (h *handlers) modsCollectionResolve(w http.ResponseWriter, r *http.Request)
 
 	var children []string
 
-	workshopItemMetdata, err := mods.FetchSteamWorkshopItemMetadata(id)
+	workshopItemMetdata, err := mods.FetchSteamWorkshopItem(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
@@ -650,7 +650,11 @@ func (h *handlers) modsCheckUpdates(w http.ResponseWriter, r *http.Request) {
 		idToMod[m.PublishedID] = m
 		ids = append(ids, m.PublishedID)
 	}
-	remote, err := mods.FetchWorkshopMeta(r.Context(), ids)
+	var idsMap map[string]bool
+	for _, id := range ids {
+		idsMap[id] = true
+	}
+	remote, err := mods.FetchWorkshopMeta(r.Context(), idsMap)
 	if err != nil {
 		// Partial results are still useful — return what we got with the error.
 		writeJSON(w, map[string]interface{}{

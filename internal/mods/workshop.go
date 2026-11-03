@@ -75,13 +75,55 @@ func ParseCollectionURL(input string) (string, error) {
 	return "", fmt.Errorf("could not find collection id in URL")
 }
 
-type WorkshopItemMetadata struct {
+type WorkshopItemSearchResult struct {
 	ParentID     string
 	IsCollection bool
-	SearchString string
+	SearchBody   string
 }
 
-func FetchSteamWorkshopItemMetadata(workshopItemID string) (*WorkshopItemMetadata, error) {
+// A collection and mod links are identical.
+// When a workshop page is fetched, we look for collection|mod identifiers
+// on the page. Collections have children and mods have required items.
+// Searching for child links should be contained to the respective child item
+// containers. If this is not done, a workshop link could be placed in the mods description
+// and would be fetched as a child item
+//
+// We can only need a single map to track both visited and the mods found.
+// Neither a collection or mod can have a child item be another collection
+// So aslong as the collection ID is never added to the visited map, we can
+// use that map for what will be downloaded
+func FetchSteamWorkshopItems(workshopItemIDs []string) map[string]bool {
+	visitedWorkshopIds := map[string]bool{}
+
+	for _, id := range workshopItemIDs {
+		if visitedWorkshopIds[id] {
+			continue
+		}
+
+		workshopItemMetadata, err := FetchSteamWorkshopItem(id)
+
+		if err != nil {
+			continue
+		}
+
+		if workshopItemMetadata.IsCollection {
+			for childID := range FetchCollectionChildren(workshopItemMetadata) {
+				visitedWorkshopIds[childID] = true
+			}
+			continue
+		}
+
+		for childID := range FetchModChildren(workshopItemMetadata) {
+			visitedWorkshopIds[childID] = true
+		}
+
+		visitedWorkshopIds[id] = true
+	}
+
+	return visitedWorkshopIds
+}
+
+func FetchSteamWorkshopItem(workshopItemID string) (*WorkshopItemSearchResult, error) {
 	if workshopItemID == "" {
 		return nil, fmt.Errorf("workshop item id required")
 	}
@@ -123,31 +165,31 @@ func FetchSteamWorkshopItemMetadata(workshopItemID string) (*WorkshopItemMetadat
 		searchBody = util.ExtractHTMLContainerByAttr(string(body), "id", "RequiredItems")
 	}
 
-	return &WorkshopItemMetadata{
+	return &WorkshopItemSearchResult{
 		ParentID:     workshopItemID,
 		IsCollection: isCollection,
-		SearchString: searchBody,
+		SearchBody:   searchBody,
 	}, nil
 }
 
-func FetchModChildren(modMetadata *WorkshopItemMetadata) map[string]bool {
-	seen := map[string]bool{modMetadata.ParentID: true}
+func FetchModChildren(modSearchResult *WorkshopItemSearchResult) map[string]bool {
+	seen := map[string]bool{modSearchResult.ParentID: true}
 
-	for _, match := range reChildIDs.FindAllStringSubmatch(modMetadata.SearchString, -1) {
+	for _, match := range reChildIDs.FindAllStringSubmatch(modSearchResult.SearchBody, -1) {
 		seen[match[1]] = true
 	}
 
 	return seen
 }
 
-func FetchCollectionChildren(collectionMetadata *WorkshopItemMetadata) map[string]bool {
-	seen := map[string]bool{collectionMetadata.ParentID: true}
+func FetchCollectionChildren(collectionSearchResult *WorkshopItemSearchResult) map[string]bool {
+	seen := map[string]bool{collectionSearchResult.ParentID: true}
 
-	for _, match := range reCollectionChildIds.FindAllStringSubmatch(collectionMetadata.SearchString, -1) {
+	for _, match := range reCollectionChildIds.FindAllStringSubmatch(collectionSearchResult.SearchBody, -1) {
 		seen[match[1]] = true
 	}
 
-	delete(seen, collectionMetadata.ParentID)
+	delete(seen, collectionSearchResult.ParentID)
 
 	return seen
 }
@@ -212,7 +254,11 @@ func ResolveCollection(ctx context.Context, srcDir string, ids []string) (*Colle
 		// Bound the Steam call so a slow upstream never hangs the request.
 		sctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 		defer cancel()
-		remote, err := FetchWorkshopMeta(sctx, leftover)
+		var leftoverIdsMap map[string]bool
+		for _, id := range leftover {
+			leftoverIdsMap[id] = true
+		}
+		remote, err := FetchWorkshopMeta(sctx, leftoverIdsMap)
 		if err == nil {
 			// Build lookup from normalized folder name → wsEntry.
 			folderNorm := map[string]wsEntry{}
