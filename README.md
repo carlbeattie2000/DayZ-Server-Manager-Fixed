@@ -1,5 +1,26 @@
 # DayZ Server Manager
 
+## 🛠️ Personal Modifications & Technical Corrections
+
+This repository is a personal development fork of `AristarhUcolov/DayZ-Server-Manager`, maintained under Section 3 ("Permitted") of the original project license for local study, modification, and private environment maintenance.
+
+### 🔍 Catalyst & Why This Fork Was Created
+This repository was established due to an administrative breakdown on the upstream project. 
+
+A legitimate bug report identifying critical flaws in Steam Workshop collection parsing was submitted alongside open technical inquiries regarding how community members could contribute to and improve the codebase. Rather than engaging with the technical feedback, the upstream maintainer issued an arbitrary "Final Notice" threat mimicking platform moderation penalties, closed the thread, and subsequently deleted the entire public issue to erase the discussion. 
+
+Because public collaboration and standard technical reviews were explicitly rejected and censored, this independent repository was established to safely track, implement, and maintain the necessary code corrections locally.
+
+### 🔧 Fixes Maintained in This Workspace
+The primary goal of this workspace is to resolve these issues:
+* **Steam Collection Parsing:** Implements a conditional workflow to extract child items when processing Workshop Collections, preventing collection sync dropouts.
+* **Dependency Update:** Promotes `golang.org/x/net` to resolve direct HTML tokenization requirements and aligns the outdated `x/sys` snapshot with stable releases.
+
+### ⚖️ License & Attribution
+* **Original Author:** Aristarh Ucolov
+* **Status:** This is an authorized source fork containing localized bug patches. It is strictly non-commercial and adheres to the original copyright notice. No rights are claimed over the underlying software architecture.
+
+
 [![Go](https://img.shields.io/badge/go-1.23+-00ADD8?logo=go)](https://go.dev)
 [![License](https://img.shields.io/badge/license-Proprietary-orange)](LICENSE.md)
 [![Author](https://img.shields.io/badge/author-Aristarh%20Ucolov-blue)](#)
