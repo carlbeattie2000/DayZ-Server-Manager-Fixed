@@ -8,6 +8,7 @@ import time
 import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT_DIR = os.path.join(ROOT, "release")
 FILES = ["dayz-manager-panel.exe", "dayz-manager-web.exe"]
 README = """DayZ Server Manager for Windows
 ================================
@@ -51,11 +52,11 @@ Windows SmartScreen может написать «Система Windows защ�
 
 
 def main():
-    out = os.path.join(ROOT, "dayz-manager-windows.zip")
+    out = os.path.join(OUT_DIR, "dayz-manager-windows.zip")
     stamp = time.localtime()[:6]
     with zipfile.ZipFile(out, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for name in FILES:
-            path = os.path.join(ROOT, name)
+            path = os.path.join(OUT_DIR, name)
             if not os.path.exists(path):
                 raise SystemExit("missing " + name + " - build it first")
             # A Linux binary under an .exe name (the build target was not

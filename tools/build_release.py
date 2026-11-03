@@ -14,6 +14,7 @@ import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT_DIR = os.path.join(ROOT, "release")
 
 # (output file, package, GOOS, extra -ldflags)
 BUILDS = [
@@ -27,16 +28,17 @@ MAGIC = {"windows": b"MZ", "linux": b"\x7fELF"}
 
 
 def build(out, pkg, goos, ldextra):
+    dest = os.path.join(OUT_DIR, out)
     env = dict(os.environ, GOOS=goos, GOARCH="amd64", CGO_ENABLED="0")
     ldflags = ("-s -w " + ldextra).strip()
-    cmd = ["go", "build", "-trimpath", "-ldflags=" + ldflags, "-o", out, pkg]
+    cmd = ["go", "build", "-trimpath", "-ldflags=" + ldflags, "-o", dest, pkg]
     print("  %-26s GOOS=%s  %s" % (out, goos, " ".join(cmd[2:])))
     subprocess.run(cmd, cwd=ROOT, env=env, check=True)
-    with open(os.path.join(ROOT, out), "rb") as f:
+    with open(dest, "rb") as f:
         head = f.read(4)
     if not head.startswith(MAGIC[goos]):
         sys.exit("ERROR: %s is not a %s program (starts with %r) — the build target was not applied" % (out, goos, head))
-    size = os.path.getsize(os.path.join(ROOT, out))
+    size = os.path.getsize(dest)
     print("      ok: %s binary, %.1f MB" % (goos, size / 1048576))
 
 
@@ -44,6 +46,7 @@ def main():
     only = sys.argv[1] if len(sys.argv) > 1 else ""
     if only not in ("", "linux", "windows"):
         sys.exit("usage: build_release.py [linux|windows]")
+    os.makedirs(OUT_DIR, exist_ok=True)
     print("Building release binaries:")
     for out, pkg, goos, ld in BUILDS:
         if only and goos != only:

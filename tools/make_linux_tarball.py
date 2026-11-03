@@ -11,6 +11,7 @@ import tarfile
 import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT_DIR = os.path.join(ROOT, "release")
 FILES = ["dayz-manager-panel-linux", "dayz-manager-web-linux"]
 README = """DayZ Server Manager for Linux
 ==============================
@@ -59,11 +60,11 @@ DayZ Server Manager для Linux
 
 
 def main():
-    out = os.path.join(ROOT, "dayz-manager-linux.tar.gz")
+    out = os.path.join(OUT_DIR, "dayz-manager-linux.tar.gz")
     now = int(time.time())
     with tarfile.open(out, "w:gz") as tar:
         for name in FILES:
-            path = os.path.join(ROOT, name)
+            path = os.path.join(OUT_DIR, name)
             if not os.path.exists(path):
                 raise SystemExit("missing " + name + " - build it first")
             # A Windows .exe under a -linux name (the build target was not
