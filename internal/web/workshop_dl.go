@@ -341,19 +341,26 @@ func (h *handlers) wsLookup(w http.ResponseWriter, r *http.Request) {
 	var all []string
 	seen := map[string]bool{}
 	for _, id := range ids {
-		kids, err := mods.FetchCollectionChildren(id)
-		if err == nil && len(kids) > 0 {
-			for _, k := range kids {
-				if !seen[k] {
-					seen[k] = true
-					all = append(all, k)
+		workshopItemMetadata, err := mods.FetchSteamWorkshopItemMetadata(id)
+		//kids, err := mods.FetchCollectionChildren(id)
+		if err == nil {
+			if workshopItemMetadata.IsCollection {
+				children := mods.FetchCollectionChildren(workshopItemMetadata)
+
+				for childID := range children {
+					seen[childID] = true
 				}
+
+				continue
 			}
-			continue
-		}
-		if !seen[id] {
+
+			children := mods.FetchModChildren(workshopItemMetadata)
+
+			for childID := range children {
+				seen[childID] = true
+			}
+
 			seen[id] = true
-			all = append(all, id)
 		}
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
@@ -375,7 +382,7 @@ func (h *handlers) wsLookup(w http.ResponseWriter, r *http.Request) {
 		Preview   string `json:"preview,omitempty"`
 	}
 	out := make([]row, 0, len(all))
-	for _, id := range all {
+	for id := range seen {
 		m, ok := meta[id]
 		rr := row{ID: id, Installed: inst[id]}
 		if ok && m.Result == 1 {

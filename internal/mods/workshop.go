@@ -75,65 +75,81 @@ func ParseCollectionURL(input string) (string, error) {
 	return "", fmt.Errorf("could not find collection id in URL")
 }
 
-// FetchCollectionChildren downloads the public collection page and extracts
-// all contained workshop item IDs. We deliberately do not authenticate —
-// the collection page is public HTML, and anything more would require API
-// keys users are unlikely to have.
-func FetchCollectionChildren(collectionID string) ([]string, error) {
-	if collectionID == "" {
-		return nil, fmt.Errorf("collection id required")
+type WorkshopItemMetadata struct {
+	ParentID     string
+	IsCollection bool
+	SearchString string
+}
+
+func FetchSteamWorkshopItemMetadata(workshopItemID string) (*WorkshopItemMetadata, error) {
+	if workshopItemID == "" {
+		return nil, fmt.Errorf("workshop item id required")
 	}
-	u := "https://steamcommunity.com/sharedfiles/filedetails/?id=" + url.QueryEscape(collectionID)
+
+	uri := "https://steamcommunity.com/sharedfiles/filedetails/?id=" + url.QueryEscape(workshopItemID)
 	client := &http.Client{Timeout: 15 * time.Second}
-	req, err := http.NewRequest("GET", u, nil)
+	req, err := http.NewRequest("GET", uri, nil)
+
 	if err != nil {
 		return nil, err
 	}
+
 	// Steam serves a cut-down page to unidentified UAs; a browser-like UA
 	// returns the full list.
 	req.Header.Set("User-Agent", "Mozilla/5.0 (dayz-manager; +https://github.com/)")
 	resp, err := client.Do(req)
+
 	if err != nil {
-		return nil, fmt.Errorf("fetch collection: %w", err)
+		return nil, err
 	}
+
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("steam returned %d", resp.StatusCode)
 	}
+
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 8*1024*1024))
 	if err != nil {
 		return nil, err
 	}
 
 	var isCollection = reIsCollection.Match(body)
-
-	seen := map[string]bool{}
 	var searchBody string
-	var searchRe regexp.Regexp = *reChildIDs
 
 	if isCollection {
-		seen[collectionID] = true
 		searchBody = util.ExtractHTMLContainerByAttr(string(body), "class", "collectionChildren")
-		searchRe = *reCollectionChildIds
 	} else {
 		searchBody = util.ExtractHTMLContainerByAttr(string(body), "id", "RequiredItems")
 	}
 
-	var out []string
-	for _, m := range searchRe.FindAllStringSubmatch(searchBody, -1) {
-		id := m[1]
-		if seen[id] {
-			continue
-		}
-		seen[id] = true
-		out = append(out, id)
+	return &WorkshopItemMetadata{
+		ParentID:     workshopItemID,
+		IsCollection: isCollection,
+		SearchString: searchBody,
+	}, nil
+}
+
+func FetchModChildren(modMetadata *WorkshopItemMetadata) map[string]bool {
+	seen := map[string]bool{modMetadata.ParentID: true}
+
+	for _, match := range reChildIDs.FindAllStringSubmatch(modMetadata.SearchString, -1) {
+		seen[match[1]] = true
 	}
 
-	if !isCollection {
-		out = append(out, collectionID)
+	return seen
+}
+
+func FetchCollectionChildren(collectionMetadata *WorkshopItemMetadata) map[string]bool {
+	seen := map[string]bool{collectionMetadata.ParentID: true}
+
+	for _, match := range reCollectionChildIds.FindAllStringSubmatch(collectionMetadata.SearchString, -1) {
+		seen[match[1]] = true
 	}
 
-	return out, nil
+	delete(seen, collectionMetadata.ParentID)
+
+	return seen
 }
 
 // ResolveCollection matches a list of publishedids to @Mod directories in

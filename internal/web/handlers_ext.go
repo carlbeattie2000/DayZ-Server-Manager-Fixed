@@ -71,11 +71,25 @@ func (h *handlers) modsCollectionResolve(w http.ResponseWriter, r *http.Request)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	children, err := mods.FetchCollectionChildren(id)
+
+	var children []string
+
+	workshopItemMetdata, err := mods.FetchSteamWorkshopItemMetadata(id)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
-		return
 	}
+
+	if workshopItemMetdata.IsCollection {
+		for childID := range mods.FetchCollectionChildren(workshopItemMetdata) {
+			children = append(children, childID)
+		}
+	} else {
+		for childID := range mods.FetchModChildren(workshopItemMetdata) {
+			children = append(children, childID)
+		}
+	}
+
 	if h.app.Cfg().ModSourceDir() == "" {
 		http.Error(w, mods.ErrNoSource.Error(), http.StatusBadRequest)
 		return
