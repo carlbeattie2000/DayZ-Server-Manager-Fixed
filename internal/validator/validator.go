@@ -65,7 +65,7 @@ type Fixed struct {
 
 // F builds a Fixed from its key, its English text and its args (alternating
 // names and values).
-func F(key, text string, kv ...interface{}) Fixed {
+func F(key, text string, kv ...any) Fixed {
 	return Fixed{Key: key, Text: text, Args: A(kv...)}
 }
 
@@ -79,7 +79,7 @@ func Texts(f []Fixed) []string {
 }
 
 // A is shorthand for an Issue's Args: alternating names and values.
-func A(kv ...interface{}) map[string]string {
+func A(kv ...any) map[string]string {
 	m := make(map[string]string, len(kv)/2)
 	for i := 0; i+1 < len(kv); i += 2 {
 		m[fmt.Sprint(kv[i])] = fmt.Sprint(kv[i+1])

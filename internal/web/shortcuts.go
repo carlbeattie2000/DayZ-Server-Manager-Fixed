@@ -17,7 +17,7 @@ func (h *handlers) appShortcuts(w http.ResponseWriter, r *http.Request) {
 	local := isLoopback(r)
 	supported := local && a.InstallShortcuts != nil
 	if r.Method == http.MethodGet {
-		writeJSON(w, map[string]interface{}{
+		writeJSON(w, map[string]any{
 			"supported": supported,
 			"installed": a.ShortcutsInstalled != nil && a.ShortcutsInstalled(),
 			"local":     local,
@@ -33,7 +33,7 @@ func (h *handlers) appShortcuts(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"ok": true, "paths": paths})
+	writeJSON(w, map[string]any{"ok": true, "paths": paths})
 }
 
 // appAutostart reports (GET) or switches (POST {"enabled": bool}) starting

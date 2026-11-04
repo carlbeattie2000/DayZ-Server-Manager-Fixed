@@ -101,7 +101,7 @@ func TestManagerRejectedPasswordsBackOff(t *testing.T) {
 	if !errors.Is(m.LastConnectErr(), ErrAuthFailed) {
 		t.Fatalf("LastConnectErr = %v", m.LastConnectErr())
 	}
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		if err := m.Connect(); !errors.Is(err, ErrAuthFailed) {
 			t.Fatalf("retry %d: %v", i, err)
 		}

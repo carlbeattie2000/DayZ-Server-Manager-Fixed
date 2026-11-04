@@ -11,13 +11,13 @@ import (
 // left without its explanation. (Keys used to drift: four were misspelled and
 // thirty were missing.)
 func TestGameplayDefaultsHaveHelp(t *testing.T) {
-	var root map[string]interface{}
+	var root map[string]any
 	if err := json.Unmarshal([]byte(GameplayDefaults), &root); err != nil {
 		t.Fatalf("GameplayDefaults is not valid JSON: %v", err)
 	}
-	var walk func(m map[string]interface{})
+	var walk func(m map[string]any)
 	n := 0
-	walk = func(m map[string]interface{}) {
+	walk = func(m map[string]any) {
 		for k, v := range m {
 			n++
 			if gameplayHelpEN[k] == "" {
@@ -26,7 +26,7 @@ func TestGameplayDefaultsHaveHelp(t *testing.T) {
 			if gameplayHelpRU[k] == "" {
 				t.Errorf("no Russian help for %q", k)
 			}
-			if sub, ok := v.(map[string]interface{}); ok {
+			if sub, ok := v.(map[string]any); ok {
 				walk(sub)
 			}
 		}

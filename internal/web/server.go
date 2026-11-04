@@ -371,7 +371,7 @@ func (s *Server) swapListener(bind string) error {
 	_ = s.served.Close() // http.Serve returns and waits for s.next
 	listen := func(host string) (net.Listener, error) {
 		var err error
-		for try := 0; try < 10; try++ {
+		for range 10 {
 			var ln net.Listener
 			if ln, err = net.Listen("tcp", net.JoinHostPort(host, fmt.Sprint(s.port))); err == nil {
 				return ln, nil
@@ -541,7 +541,7 @@ func etagStatic(files fs.FS, next http.Handler) http.Handler {
 // skipped — compression would buffer the live tail; the zip export is already
 // compressed.
 func gzipper(h http.Handler) http.Handler {
-	pool := sync.Pool{New: func() interface{} { return gzip.NewWriter(io.Discard) }}
+	pool := sync.Pool{New: func() any { return gzip.NewWriter(io.Discard) }}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") ||
 			strings.HasPrefix(r.URL.Path, "/api/logs/stream") ||

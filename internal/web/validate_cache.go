@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -67,11 +68,8 @@ func validateFingerprint(o validator.Options) string {
 				return nil
 			}
 			ext := strings.ToLower(filepath.Ext(p))
-			for _, e := range exts {
-				if ext == e {
-					stamp(p, info)
-					break
-				}
+			if slices.Contains(exts, ext) {
+				stamp(p, info)
 			}
 			return nil
 		})

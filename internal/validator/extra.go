@@ -162,7 +162,7 @@ func checkJSON(o Options) []Issue {
 			continue // reported by checkEncoding
 		}
 		data = bytes.TrimPrefix(data, []byte{0xEF, 0xBB, 0xBF})
-		var v interface{}
+		var v any
 		err = json.Unmarshal(data, &v)
 		if err == nil {
 			continue

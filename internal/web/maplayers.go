@@ -129,7 +129,7 @@ func renderAreaFlags(path, mode string, out int, valueNames []string) (image.Ima
 		}
 		palette[m] = best
 	}
-	for oy := 0; oy < out; oy++ {
+	for oy := range out {
 		// Row 0 of the file is the south edge; row 0 of the image is north.
 		gy := (out - 1 - oy) * hd.H / out
 		if mode == "land" {
@@ -146,7 +146,7 @@ func renderAreaFlags(path, mode string, out int, valueNames []string) (image.Ima
 		if _, err := f.ReadAt(valRow, vOff); err != nil && !errors.Is(err, io.EOF) {
 			return nil, err
 		}
-		for ox := 0; ox < out; ox++ {
+		for ox := range out {
 			gx := ox * hd.W / out
 			var v int
 			if hd.valueBits == 8 {
@@ -163,7 +163,7 @@ func renderAreaFlags(path, mode string, out int, valueNames []string) (image.Ima
 			case "land":
 				used := v != 0
 				if !used {
-					for k := 0; k < ub; k++ {
+					for k := range ub {
 						if usageRow[gx*ub+k] != 0 {
 							used = true
 							break
@@ -238,7 +238,7 @@ var layerMu sync.Mutex // one render at a time; renders are cached on disk
 // mapLayersInfo lists which real-data layers the active mission provides.
 func (h *handlers) mapLayersInfo(w http.ResponseWriter, r *http.Request) {
 	md := h.activeMissionDir()
-	out := map[string]interface{}{"map": h.currentMap()}
+	out := map[string]any{"map": h.currentMap()}
 	if md == "" {
 		writeJSON(w, out)
 		return
@@ -355,7 +355,7 @@ var reZone = regexp.MustCompile(`<zone\b[^>]*\bx="([-\d.]+)"[^>]*\bz="([-\d.]+)"
 func (h *handlers) mapZones(w http.ResponseWriter, r *http.Request) {
 	md := h.activeMissionDir()
 	if md == "" {
-		writeJSON(w, map[string]interface{}{})
+		writeJSON(w, map[string]any{})
 		return
 	}
 	type zone struct {
@@ -402,5 +402,5 @@ func (h *handlers) mapZones(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	writeJSON(w, map[string]interface{}{"infected": infected, "wildlife": wildlife, "toxic": toxic})
+	writeJSON(w, map[string]any{"infected": infected, "wildlife": wildlife, "toxic": toxic})
 }

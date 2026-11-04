@@ -33,7 +33,7 @@ func (h *handlers) spawnableList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, err := os.Stat(path); err != nil {
-		writeJSON(w, map[string]interface{}{"path": path, "exists": false, "types": []interface{}{}})
+		writeJSON(w, map[string]any{"path": path, "exists": false, "types": []any{}})
 		return
 	}
 	list, err := dztypes.LoadSpawnable(path)
@@ -70,7 +70,7 @@ func (h *handlers) spawnableList(w http.ResponseWriter, r *http.Request) {
 		rows = append(rows, r)
 	}
 
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"path":   path,
 		"exists": true,
 		"types":  rows,
@@ -165,7 +165,7 @@ func (h *handlers) spawnableClassNames(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"names": names, "count": len(names)})
+	writeJSON(w, map[string]any{"names": names, "count": len(names)})
 }
 
 // typesClassNames lists every class name of the mission's types.xml and its
@@ -249,7 +249,7 @@ func (h *handlers) spawnableItem(w http.ResponseWriter, r *http.Request) {
 		}
 		// removed > 1 means the file carried duplicate entries — worth saying,
 		// because DayZ was silently using only one of them.
-		writeJSON(w, map[string]interface{}{"status": "deleted", "name": name, "removed": removed})
+		writeJSON(w, map[string]any{"status": "deleted", "name": name, "removed": removed})
 		return
 	}
 
@@ -473,5 +473,5 @@ func builtinSpawnPresets() []spawnPreset {
 }
 
 func (h *handlers) spawnablePresets(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, map[string]interface{}{"presets": builtinSpawnPresets()})
+	writeJSON(w, map[string]any{"presets": builtinSpawnPresets()})
 }

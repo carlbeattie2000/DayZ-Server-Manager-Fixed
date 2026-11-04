@@ -18,6 +18,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"strings"
 	"sync"
 )
@@ -208,9 +209,7 @@ func Help(lang string) map[string]string {
 	en := bundleFor("en")
 	out := map[string]string{}
 	if en != nil {
-		for k, v := range en.Help {
-			out[k] = v
-		}
+		maps.Copy(out, en.Help)
 	}
 	if b := bundleFor(lang); b != nil && b != en {
 		for k, v := range b.Help {

@@ -156,8 +156,8 @@ func snapApp(path, real string) string {
 		return strings.SplitN(base, ".", 2)[0]
 	}
 	for _, p := range []string{path, real} {
-		if strings.HasPrefix(p, "/snap/") {
-			if name := strings.SplitN(strings.TrimPrefix(p, "/snap/"), "/", 2)[0]; name != "" && name != "bin" {
+		if after, ok := strings.CutPrefix(p, "/snap/"); ok {
+			if name, _, _ := strings.Cut(after, "/"); name != "" && name != "bin" {
 				return name // /snap/<snap>/<revision>/...
 			}
 		}
@@ -187,7 +187,7 @@ func startAppBrowser(inst *launcher.Instance, b appBrowser, url string, withProf
 	return launcher.Launch(cmd, 4*time.Second)
 }
 
-func logf(inst *launcher.Instance, format string, a ...interface{}) {
+func logf(inst *launcher.Instance, format string, a ...any) {
 	if inst != nil {
 		inst.App.Log.Printf(format, a...)
 	}

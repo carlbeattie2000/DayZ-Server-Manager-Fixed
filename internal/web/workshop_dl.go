@@ -103,7 +103,7 @@ func (h *handlers) wsClear(w http.ResponseWriter, r *http.Request) {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 	if st.job == nil {
-		writeJSON(w, map[string]interface{}{"ok": true})
+		writeJSON(w, map[string]any{"ok": true})
 		return
 	}
 	if st.job.State == "running" {
@@ -124,7 +124,7 @@ func (h *handlers) wsClear(w http.ResponseWriter, r *http.Request) {
 			st.job = nil
 		}
 	}
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 func (h *handlers) wsStatus(w http.ResponseWriter, r *http.Request) {
@@ -152,7 +152,7 @@ func (h *handlers) wsStatus(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	out := map[string]interface{}{
+	out := map[string]any{
 		"installed": st.tool.Installed(),
 		"user":      h.app.Cfg().SteamUser,
 		"loggedIn":  st.loggedIn,
@@ -190,7 +190,7 @@ func (h *handlers) wsStart(w http.ResponseWriter, kind string, items []wsItem, f
 		}
 		st.mu.Unlock()
 	})
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 	return true
 }
 
@@ -283,7 +283,7 @@ func (h *handlers) wsForget(w http.ResponseWriter, r *http.Request) {
 	st.loggedIn = &no
 	st.mu.Unlock()
 	_ = h.app.MutateConfig(func(c *config.Manager) error { c.SteamUser = ""; return nil })
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 var (
@@ -379,7 +379,7 @@ func (h *handlers) wsLookup(w http.ResponseWriter, r *http.Request) {
 		}
 		out = append(out, rr)
 	}
-	writeJSON(w, map[string]interface{}{"items": out})
+	writeJSON(w, map[string]any{"items": out})
 }
 
 // wsDownload downloads items with SteamCMD and installs them into this
@@ -546,7 +546,7 @@ func (h *handlers) wsUpdates(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Steam: "+err.Error(), http.StatusBadGateway)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"mods": rows})
+	writeJSON(w, map[string]any{"mods": rows})
 }
 
 // trackProgress shows each queued item's folder size while SteamCMD

@@ -670,7 +670,7 @@ func (c *Controller) restart() error {
 // clears in that window; anything longer needs a human, and hammering the exe
 // forever would only bury the log line that says so.
 func (c *Controller) retryStart() {
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		time.Sleep(15 * time.Second)
 		unlock := c.lockWrites()
 		if c.IsRunning() || c.loopPaused.Load() {

@@ -60,10 +60,7 @@ func scanFPS(path string, size int64) (float64, bool) {
 		return 0, false
 	}
 	defer f.Close()
-	off := size - fpsWindow
-	if off < 0 {
-		off = 0
-	}
+	off := max(size-fpsWindow, 0)
 	buf := make([]byte, size-off)
 	n, err := f.ReadAt(buf, off)
 	if err != nil && err != io.EOF {

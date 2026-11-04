@@ -462,5 +462,5 @@ func (h *handlers) changelogList(w http.ResponseWriter, r *http.Request) {
 		}
 		out = append(out, changelogEntry{Version: c.Version, Date: c.Date, Notes: notes})
 	}
-	writeJSON(w, map[string]interface{}{"current": h.app.Version, "releases": out})
+	writeJSON(w, map[string]any{"current": h.app.Version, "releases": out})
 }

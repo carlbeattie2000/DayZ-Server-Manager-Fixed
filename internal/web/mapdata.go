@@ -300,7 +300,7 @@ func (h *handlers) mapImageUpload(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "saved", "map": key})
+	writeJSON(w, map[string]any{"status": "saved", "map": key})
 }
 
 // storeMapImage writes data as the background image for key, replacing any
@@ -403,7 +403,7 @@ func (h *handlers) mapImageFetch(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "saved", "map": key})
+	writeJSON(w, map[string]any{"status": "saved", "map": key})
 }
 
 // mapSize sets the world-size override for a map key (metres), so a modded map
@@ -436,7 +436,7 @@ func (h *handlers) mapSize(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "saved", "map": key, "size": req.Size})
+	writeJSON(w, map[string]any{"status": "saved", "map": key, "size": req.Size})
 }
 
 // mapImageDelete removes a map's custom background image.
@@ -497,7 +497,7 @@ func (h *handlers) mapHeat(w http.ResponseWriter, r *http.Request) {
 			Killer: k.Killer, Source: k.Source, Weapon: k.Weapon, Distance: k.Distance})
 	}
 
-	out := map[string]interface{}{
+	out := map[string]any{
 		"map":    h.currentMap(),
 		"points": points,
 		"total":  len(points),
@@ -589,7 +589,7 @@ func (h *handlers) mapLive(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	out := map[string]interface{}{
+	out := map[string]any{
 		"map":            h.currentMap(),
 		"players":        plotted,
 		"running":        running,
@@ -618,7 +618,7 @@ func (h *handlers) mapBasesLog(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	writeJSON(w, map[string]interface{}{"status": "ok", "restart": h.app.ServerIsRunning()})
+	writeJSON(w, map[string]any{"status": "ok", "restart": h.app.ServerIsRunning()})
 }
 
 // mapLivePlayerList turns on adminLogPlayerList, the serverDZ.cfg switch that
@@ -634,5 +634,5 @@ func (h *handlers) mapLivePlayerList(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "ok", "restart": h.app.ServerIsRunning()})
+	writeJSON(w, map[string]any{"status": "ok", "restart": h.app.ServerIsRunning()})
 }

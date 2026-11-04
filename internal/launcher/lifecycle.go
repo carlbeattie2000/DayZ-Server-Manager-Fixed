@@ -242,11 +242,11 @@ func lastCrash(path string) string {
 		return ""
 	}
 	rest := s[i+1:]
-	nl := strings.IndexByte(rest, '\n')
-	if nl < 0 {
+	_, after, ok := strings.Cut(rest, "\n")
+	if !ok {
 		return ""
 	}
-	text := strings.TrimSpace(rest[nl+1:])
+	text := strings.TrimSpace(after)
 	const max = 16 << 10
 	if len(text) > max {
 		text = text[:max] + "\n…"

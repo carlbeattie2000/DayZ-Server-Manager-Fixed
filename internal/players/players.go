@@ -17,9 +17,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"maps"
 	"math"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -354,10 +356,7 @@ func (s *Store) seedBases(profilesDir string, entries []os.DirEntry) {
 		if budget <= 0 {
 			break
 		}
-		from := f.off - budget
-		if from < 0 {
-			from = 0
-		}
+		from := max(f.off-budget, 0)
 		budget -= f.off - from
 		fh, err := os.Open(f.path)
 		if err != nil {
@@ -591,10 +590,7 @@ func (s *Store) LivePositions() []LivePos {
 		if p := s.d.Players[k]; p != nil && p.Name != "" {
 			name = p.Name
 		}
-		age := int(now.Sub(s.lastPosAt[k]).Seconds())
-		if age < 0 {
-			age = 0
-		}
+		age := max(int(now.Sub(s.lastPosAt[k]).Seconds()), 0)
 		lp := LivePos{Key: k, Name: name, X: pos[0], Z: pos[1], AgeSec: age}
 		for _, t := range s.trail[k] {
 			if s.lastPosAt[k].Sub(t.At) <= trailWindow {
@@ -765,9 +761,7 @@ func (s *Store) SessionStarts() map[string]time.Time {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	out := make(map[string]time.Time, len(s.open))
-	for k, t := range s.open {
-		out[k] = t
-	}
+	maps.Copy(out, s.open)
 	return out
 }
 
@@ -782,12 +776,7 @@ func (s *Store) WatchActivity() []WatchEvent {
 }
 
 func contains(list []string, s string) bool {
-	for _, v := range list {
-		if v == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(list, s)
 }
 
 // headerDay reads the date from an .ADM header, falling back to the file's

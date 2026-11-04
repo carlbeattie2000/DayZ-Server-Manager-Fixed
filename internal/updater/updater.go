@@ -128,10 +128,7 @@ func compareVersions(a, b string) int {
 	}
 	ap := strings.Split(a, ".")
 	bp := strings.Split(b, ".")
-	n := len(ap)
-	if len(bp) > n {
-		n = len(bp)
-	}
+	n := max(len(bp), len(ap))
 	for i := 0; i < n; i++ {
 		var ai, bi int
 		if i < len(ap) {

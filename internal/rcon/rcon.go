@@ -296,7 +296,7 @@ func (c *Conn) handleCommandReply(b []byte) {
 		m[idx] = payload
 		if byte(len(m)) == total {
 			var full []byte
-			for i := byte(0); i < total; i++ {
+			for i := range total {
 				full = append(full, m[i]...)
 			}
 			delete(c.parts, seq)

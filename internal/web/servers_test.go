@@ -87,12 +87,12 @@ func TestRequestsReachTheirServer(t *testing.T) {
 	}
 	// /api/info names the server of the request, and lists every managed
 	// folder for a manager starting on this PC (loopback).
-	var info map[string]interface{}
+	var info map[string]any
 	_ = json.Unmarshal(do("/api/info", second.ID).Body.Bytes(), &info)
 	if info["serverId"] != second.ID || info["serverDir"] != second.ServerDir {
 		t.Fatalf("info: %v", info)
 	}
-	if dirs, _ := info["managedDirs"].([]interface{}); len(dirs) != 2 {
+	if dirs, _ := info["managedDirs"].([]any); len(dirs) != 2 {
 		t.Fatalf("managedDirs: %v", info["managedDirs"])
 	}
 	// Removing the server stops serving it.

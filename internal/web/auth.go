@@ -141,7 +141,7 @@ func newAuthManager(managerDir string, logger *log.Logger) *authManager {
 	return m
 }
 
-func (m *authManager) logf(format string, args ...interface{}) {
+func (m *authManager) logf(format string, args ...any) {
 	if m.log != nil {
 		m.log.Printf(format, args...)
 	}

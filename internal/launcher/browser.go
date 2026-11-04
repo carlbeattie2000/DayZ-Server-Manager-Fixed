@@ -19,11 +19,11 @@ const launchWait = 4 * time.Second
 
 var (
 	logMu   sync.Mutex
-	logHook func(format string, a ...interface{})
+	logHook func(format string, a ...any)
 )
 
 // logf writes to the manager log once one exists (Start installs it).
-func logf(format string, a ...interface{}) {
+func logf(format string, a ...any) {
 	logMu.Lock()
 	f := logHook
 	logMu.Unlock()
@@ -32,7 +32,7 @@ func logf(format string, a ...interface{}) {
 	}
 }
 
-func setLogHook(f func(format string, a ...interface{})) {
+func setLogHook(f func(format string, a ...any)) {
 	logMu.Lock()
 	logHook = f
 	logMu.Unlock()

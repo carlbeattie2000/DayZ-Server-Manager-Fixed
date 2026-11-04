@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -165,8 +166,8 @@ func DedupTypesFile(path string) ([]string, error) {
 	}
 	// Remove from last to first so earlier offsets stay valid.
 	removed := make([]string, 0, len(drop))
-	for i := len(drop) - 1; i >= 0; i-- {
-		d := drop[i]
+	for _, d := range slices.Backward(drop) {
+
 		src = src[:d.start] + src[d.end:]
 		removed = append(removed, d.name)
 	}
@@ -207,9 +208,9 @@ func RemoveTypesInSet(path string, drop map[string]bool) ([]string, error) {
 		return nil, nil
 	}
 	removed := make([]string, 0, len(rm))
-	for i := len(rm) - 1; i >= 0; i-- {
-		src = src[:rm[i].start] + src[rm[i].end:]
-		removed = append(removed, rm[i].name)
+	for _, r := range slices.Backward(rm) {
+		src = src[:r.start] + src[r.end:]
+		removed = append(removed, r.name)
 	}
 	if err := writeAtomic(path, []byte(src)); err != nil {
 		return nil, err

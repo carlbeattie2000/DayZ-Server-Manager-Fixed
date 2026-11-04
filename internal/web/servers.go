@@ -63,7 +63,7 @@ func (h *handlers) serversFreePorts(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"ok": true, "ports": p})
+	writeJSON(w, map[string]any{"ok": true, "ports": p})
 }
 
 // fleet is the panel's server list (nil in tests that build bare handlers).
@@ -75,8 +75,8 @@ func (h *handlers) fleet() *app.Fleet {
 }
 
 // serverEntry is one row of the Servers page and the server switcher.
-func serverEntry(m app.Member, primary bool) map[string]interface{} {
-	out := map[string]interface{}{"id": m.ID, "name": m.Name, "dir": m.Dir, "primary": primary}
+func serverEntry(m app.Member, primary bool) map[string]any {
+	out := map[string]any{"id": m.ID, "name": m.Name, "dir": m.Dir, "primary": primary}
 	if m.Error != "" {
 		out["error"] = m.Error
 	}
@@ -112,11 +112,11 @@ func serverEntry(m app.Member, primary bool) map[string]interface{} {
 func (h *handlers) serversList(w http.ResponseWriter, r *http.Request) {
 	f := h.fleet()
 	if f == nil {
-		writeJSON(w, map[string]interface{}{"servers": []interface{}{}})
+		writeJSON(w, map[string]any{"servers": []any{}})
 		return
 	}
 	members := f.Members()
-	list := make([]map[string]interface{}, 0, len(members))
+	list := make([]map[string]any, 0, len(members))
 	for i, m := range members {
 		e := serverEntry(m, i == 0)
 		if m.App != nil {
@@ -126,7 +126,7 @@ func (h *handlers) serversList(w http.ResponseWriter, r *http.Request) {
 		}
 		list = append(list, e)
 	}
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"servers":    list,
 		"max":        app.MaxServers,
 		"freePorts":  f.FreePorts(),
@@ -178,7 +178,7 @@ func (h *handlers) serversInspect(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unavailable", http.StatusServiceUnavailable)
 		return
 	}
-	out := map[string]interface{}{}
+	out := map[string]any{}
 	dir, err := f.CheckNewDir(req.Dir)
 	if err != nil {
 		out["error"] = err.Error()
@@ -228,7 +228,7 @@ func (h *handlers) serversAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.server.adopt(a)
-	writeJSON(w, map[string]interface{}{"ok": true, "id": a.ID})
+	writeJSON(w, map[string]any{"ok": true, "id": a.ID})
 }
 
 // adopt wires a server just added to the panel: its API and loops, the
@@ -258,7 +258,7 @@ func (h *handlers) serversRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.server.detach(req.ID)
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 func (h *handlers) serversRename(w http.ResponseWriter, r *http.Request) {
@@ -279,7 +279,7 @@ func (h *handlers) serversRename(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 func (h *handlers) serversMove(w http.ResponseWriter, r *http.Request) {
@@ -305,7 +305,7 @@ func (h *handlers) serversMove(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 func (h *handlers) serversRetry(w http.ResponseWriter, r *http.Request) {
@@ -322,7 +322,7 @@ func (h *handlers) serversRetry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if inst, ok := h.server.instance(req.ID); ok && inst != nil {
-		writeJSON(w, map[string]interface{}{"ok": true})
+		writeJSON(w, map[string]any{"ok": true})
 		return
 	}
 	a, err := f.Retry(req.ID)
@@ -331,7 +331,7 @@ func (h *handlers) serversRetry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.server.adopt(a)
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 func (s *Server) instance(id string) (*instance, bool) {
@@ -360,19 +360,19 @@ type cloneJob struct {
 	Started int64  `json:"started"`
 }
 
-func (s *Server) cloneState() map[string]interface{} {
+func (s *Server) cloneState() map[string]any {
 	j := &s.clone
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	if j.State == "" {
 		return nil
 	}
-	return map[string]interface{}{"state": j.State, "name": j.Name, "dir": j.Dir, "total": j.Total,
+	return map[string]any{"state": j.State, "name": j.Name, "dir": j.Dir, "total": j.Total,
 		"copied": j.Copied, "files": j.Files, "current": j.Current, "error": j.Error, "id": j.ID, "started": j.Started}
 }
 
 func (h *handlers) serversCreateStatus(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, map[string]interface{}{"job": h.server.cloneState()})
+	writeJSON(w, map[string]any{"job": h.server.cloneState()})
 }
 
 func (h *handlers) serversCreate(w http.ResponseWriter, r *http.Request) {
@@ -447,7 +447,7 @@ func (h *handlers) serversCreate(w http.ResponseWriter, r *http.Request) {
 		}
 		j.State, j.ID, j.Current = "done", id, ""
 	})
-	writeJSON(w, map[string]interface{}{"ok": true, "ports": ports})
+	writeJSON(w, map[string]any{"ok": true, "ports": ports})
 }
 
 // cloneFile is one file to copy, relative to the source server folder.

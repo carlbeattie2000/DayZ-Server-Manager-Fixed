@@ -36,7 +36,7 @@ func (h *handlers) randomPresetsList(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// A missing file and an unreadable one are different answers: saving
 		// over a file the page could not read would replace every preset in it.
-		resp := map[string]interface{}{"path": path, "exists": false, "presets": []interface{}{}}
+		resp := map[string]any{"path": path, "exists": false, "presets": []any{}}
 		if !os.IsNotExist(err) {
 			resp["exists"] = true
 			resp["error"] = err.Error()
@@ -65,7 +65,7 @@ func (h *handlers) randomPresetsList(w http.ResponseWriter, r *http.Request) {
 		return presets[i].Name < presets[j].Name
 	})
 
-	writeJSON(w, map[string]interface{}{"path": path, "exists": true, "presets": presets})
+	writeJSON(w, map[string]any{"path": path, "exists": true, "presets": presets})
 }
 
 // randomPresetsSave rewrites cfgrandompresets.xml from the editor's full list.
@@ -142,5 +142,5 @@ func (h *handlers) randomPresetsSave(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "saved", "cargo": len(doc.Cargo), "attachments": len(doc.Attachments)})
+	writeJSON(w, map[string]any{"status": "saved", "cargo": len(doc.Cargo), "attachments": len(doc.Attachments)})
 }

@@ -5,6 +5,8 @@
 // without a round-trip per string.
 package i18n
 
+import "maps"
+
 import "strings"
 
 type Bundle map[string]string
@@ -97,12 +99,8 @@ func Get(code string) Bundle {
 		return en
 	}
 	m := make(Bundle, len(en))
-	for k, v := range en {
-		m[k] = v
-	}
-	for k, v := range loc {
-		m[k] = v
-	}
+	maps.Copy(m, en)
+	maps.Copy(m, loc)
 	return m
 }
 

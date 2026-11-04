@@ -78,7 +78,7 @@ func (h *handlers) playersKickAll(w http.ResponseWriter, r *http.Request) {
 		rconFail(w, firstErr)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"ok": true, "kicked": n, "online": len(ps)})
+	writeJSON(w, map[string]any{"ok": true, "kicked": n, "online": len(ps)})
 }
 
 // playersLock locks ({"lock": true}) or unlocks joining.
@@ -105,7 +105,7 @@ func (h *handlers) playersLock(w http.ResponseWriter, r *http.Request) {
 		h.lock.at = time.Time{}
 	}
 	h.lock.mu.Unlock()
-	writeJSON(w, map[string]interface{}{"ok": true, "locked": req.Lock})
+	writeJSON(w, map[string]any{"ok": true, "locked": req.Lock})
 }
 
 // keysByGUID maps the BattlEye GUIDs the player database knows (lower case)

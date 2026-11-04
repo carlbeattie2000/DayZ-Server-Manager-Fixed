@@ -71,7 +71,7 @@ func (h *handlers) appExit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "exit is not available in this mode", http.StatusNotImplemented)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "exiting"})
+	writeJSON(w, map[string]any{"status": "exiting"})
 	go func() {
 		time.Sleep(300 * time.Millisecond) // let the response reach the browser
 		h.app.RequestExit(req.StopServer)
@@ -82,10 +82,10 @@ func (h *handlers) appExit(w http.ResponseWriter, r *http.Request) {
 // calls this on the running one instead of opening a duplicate.
 func (h *handlers) appShow(w http.ResponseWriter, r *http.Request) {
 	if !isLoopback(r) || h.app.ShowWindow == nil || !h.app.ShowWindow() {
-		writeJSON(w, map[string]interface{}{"shown": false})
+		writeJSON(w, map[string]any{"shown": false})
 		return
 	}
-	writeJSON(w, map[string]interface{}{"shown": true})
+	writeJSON(w, map[string]any{"shown": true})
 }
 
 // modsSourceInspect reports what a candidate mod source would provide, so the
@@ -104,7 +104,7 @@ func (h *handlers) modsSourceInspect(w http.ResponseWriter, r *http.Request) {
 // and priority (plus the last error applying them) for the Settings page.
 func (h *handlers) serverTuning(w http.ResponseWriter, r *http.Request) {
 	cores, prio, lastErr := h.app.Server.Tuning()
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"numCPU":   runtime.NumCPU(),
 		"running":  h.app.ServerIsRunning(),
 		"cores":    cores,
@@ -245,7 +245,7 @@ func (h *handlers) fsReveal(w http.ResponseWriter, r *http.Request) {
 		}
 		target = parent
 	}
-	out := map[string]interface{}{"path": target, "opened": false}
+	out := map[string]any{"path": target, "opened": false}
 	switch {
 	case !isLoopback(r):
 		out["reason"] = "remote"

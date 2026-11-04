@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -172,8 +173,8 @@ func Diagnose(serverDir, profilesDir string) []Finding {
 			return
 		}
 		// Walk backwards: the most recent occurrence is the relevant one.
-		for i := len(lines) - 1; i >= 0; i-- {
-			line := strings.TrimSpace(lines[i])
+		for _, line := range slices.Backward(lines) {
+			line := strings.TrimSpace(line)
 			if line == "" {
 				continue
 			}

@@ -145,7 +145,6 @@ func (h *handlers) missingModVehicles(modDir, missionDir string) []string {
 	}
 	var out []string
 	for k, e := range files.eventDefs {
-		e := e
 		// A vehicle the admin deleted stays deleted.
 		if !known[k] && !sources.removed(e.Name) && looksLikeVehicle(&e, spawnable) {
 			out = append(out, e.Name)

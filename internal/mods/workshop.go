@@ -254,7 +254,7 @@ func ResolveCollection(ctx context.Context, srcDir string, ids []string) (*Colle
 		// Bound the Steam call so a slow upstream never hangs the request.
 		sctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 		defer cancel()
-		var leftoverIdsMap map[string]bool
+		leftoverIdsMap := map[string]bool{}
 		for _, id := range leftover {
 			leftoverIdsMap[id] = true
 		}

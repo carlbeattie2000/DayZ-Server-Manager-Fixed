@@ -18,7 +18,7 @@ func TestQueryWithChallenge(t *testing.T) {
 	defer pc.Close()
 	go func() {
 		buf := make([]byte, 1500)
-		for i := 0; i < 2; i++ {
+		for range 2 {
 			n, addr, err := pc.ReadFrom(buf)
 			if err != nil {
 				return

@@ -61,7 +61,7 @@ func (h *handlers) admlogRecent(w http.ResponseWriter, r *http.Request) {
 		path = abs
 	}
 	if path == "" {
-		writeJSON(w, map[string]interface{}{"events": []admlog.Event{}, "path": ""})
+		writeJSON(w, map[string]any{"events": []admlog.Event{}, "path": ""})
 		return
 	}
 	limit := 200
@@ -77,7 +77,7 @@ func (h *handlers) admlogRecent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"events": events,
 		"path":   path,
 		"count":  len(events),
@@ -130,7 +130,7 @@ func (h *handlers) dashboardMetrics(w http.ResponseWriter, r *http.Request) {
 						h.app.Log.Printf("BUG: dashboard mod count panicked: %v", r)
 					}
 				}()
-				var v map[string]interface{}
+				var v map[string]any
 				if list, err := mods.List(serverDir, vanilla); err == nil {
 					installed, enabled := 0, 0
 					for _, m := range list {
@@ -141,7 +141,7 @@ func (h *handlers) dashboardMetrics(w http.ResponseWriter, r *http.Request) {
 							enabled++
 						}
 					}
-					v = map[string]interface{}{"total": len(list), "installed": installed, "active": enabled}
+					v = map[string]any{"total": len(list), "installed": installed, "active": enabled}
 				}
 				h.dashMods.mu.Lock()
 				if v != nil {
@@ -170,7 +170,7 @@ func (h *handlers) dashboardMetrics(w http.ResponseWriter, r *http.Request) {
 			if cores > 0 {
 				norm = cpu / float64(cores)
 			}
-			out["proc"] = map[string]interface{}{
+			out["proc"] = map[string]any{
 				"cpuPercent":    norm,
 				"cpuPercentRaw": cpu,
 				"memBytes":      mem,
@@ -337,7 +337,7 @@ func (h *handlers) writeBackupZip(w io.Writer) error {
 		f.Close()
 	}
 	// manifest for sanity check on import
-	manifest := map[string]interface{}{
+	manifest := map[string]any{
 		"app":       h.app.Name,
 		"version":   h.app.Version,
 		"exported":  time.Now().UTC().Format(time.RFC3339),
@@ -516,7 +516,7 @@ func (h *handlers) backupImport(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"uploaded": fh.Filename,
 		"restored": restored,
 		"skipped":  skipped,

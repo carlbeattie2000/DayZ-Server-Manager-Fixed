@@ -217,5 +217,5 @@ func (h *handlers) modsDrift(w http.ResponseWriter, r *http.Request) {
 		return reports[i].Mod < reports[j].Mod
 	})
 
-	writeJSON(w, map[string]interface{}{"mods": reports, "checked": checked, "installed": installed})
+	writeJSON(w, map[string]any{"mods": reports, "checked": checked, "installed": installed})
 }

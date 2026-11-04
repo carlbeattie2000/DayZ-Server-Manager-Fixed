@@ -326,5 +326,5 @@ func (h *handlers) missionsImportFolder(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 	}
-	writeJSON(w, map[string]interface{}{"status": "installed", "name": name, "activated": activated})
+	writeJSON(w, map[string]any{"status": "installed", "name": name, "activated": activated})
 }

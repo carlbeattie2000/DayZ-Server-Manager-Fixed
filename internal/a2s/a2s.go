@@ -40,7 +40,7 @@ func Query(addr string, timeout time.Duration) (*Info, error) {
 	_ = conn.SetDeadline(time.Now().Add(timeout))
 	req := request
 	buf := make([]byte, 1400)
-	for attempt := 0; attempt < 3; attempt++ {
+	for range 3 {
 		if _, err := conn.Write(req); err != nil {
 			return nil, err
 		}

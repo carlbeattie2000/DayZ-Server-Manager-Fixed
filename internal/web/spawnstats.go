@@ -21,7 +21,7 @@ func (h *handlers) spawnStats(w http.ResponseWriter, r *http.Request) {
 		if st == nil {
 			st = &config.SpawnStats{}
 		}
-		writeJSON(w, map[string]interface{}{"stats": st, "tweaksMod": app.TweaksMod})
+		writeJSON(w, map[string]any{"stats": st, "tweaksMod": app.TweaksMod})
 		return
 	}
 	var req config.SpawnStats
@@ -51,7 +51,7 @@ func (h *handlers) spawnStats(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"ok": true, "applied": applied})
+	writeJSON(w, map[string]any{"ok": true, "applied": applied})
 }
 
 // applyTweaks rewrites the server tweaks mod now when the server is stopped
@@ -69,7 +69,7 @@ func (h *handlers) applyTweaks() (bool, error) {
 // class. Like the stats, the server tweaks mod applies it.
 func (h *handlers) spawnChamber(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		writeJSON(w, map[string]interface{}{"unchambered": orEmpty(app.ChamberClasses(h.app.Cfg().Unchambered))})
+		writeJSON(w, map[string]any{"unchambered": orEmpty(app.ChamberClasses(h.app.Cfg().Unchambered))})
 		return
 	}
 	var req struct {
@@ -108,7 +108,7 @@ func (h *handlers) spawnChamber(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"ok": true, "applied": applied, "unchambered": orEmpty(list)})
+	writeJSON(w, map[string]any{"ok": true, "applied": applied, "unchambered": orEmpty(list)})
 }
 
 func orEmpty(s []string) []string {

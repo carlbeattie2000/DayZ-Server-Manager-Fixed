@@ -124,7 +124,7 @@ func (h *handlers) lootRefs(missionDir string, want map[string]bool) map[string]
 func (h *handlers) lootWhere(w http.ResponseWriter, r *http.Request) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
 	if len(q) < 2 {
-		writeJSON(w, map[string]interface{}{"query": q, "hits": []interface{}{}, "total": 0, "tooShort": true})
+		writeJSON(w, map[string]any{"query": q, "hits": []any{}, "total": 0, "tooShort": true})
 		return
 	}
 	needle := strings.ToLower(q)
@@ -218,7 +218,7 @@ func (h *handlers) lootWhere(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"query":     q,
 		"hits":      hits,
 		"total":     len(hits),

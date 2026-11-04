@@ -49,9 +49,9 @@ func TestBasesSeededFromLogsReadBefore(t *testing.T) {
 	if err := os.WriteFile(adm, []byte(admBaseSample), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	old, _ := json.Marshal(map[string]interface{}{
-		"players":  map[string]interface{}{},
-		"killfeed": []interface{}{},
+	old, _ := json.Marshal(map[string]any{
+		"players":  map[string]any{},
+		"killfeed": []any{},
 		"offsets":  map[string]int64{adm: int64(len(admBaseSample))},
 	})
 	if err := os.WriteFile(filepath.Join(mgr, "players.json"), old, 0o644); err != nil {

@@ -105,7 +105,7 @@ func (h *handlers) backupsAll(w http.ResponseWriter, r *http.Request) {
 		}
 		return ti > tj
 	})
-	writeJSON(w, map[string]interface{}{"files": out})
+	writeJSON(w, map[string]any{"files": out})
 }
 
 // ---------------------------------------------------------------------------
@@ -117,7 +117,7 @@ func (h *handlers) diagnose(w http.ResponseWriter, r *http.Request) {
 	if findings == nil {
 		findings = []dzlogs.Finding{}
 	}
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"findings": findings,
 		"running":  h.app.ServerIsRunning(),
 	})
@@ -158,7 +158,7 @@ func (h *handlers) backupsDiff(w http.ResponseWriter, r *http.Request) {
 	// Old = the backup, new = what is on disk now, so "-" reads as "this is
 	// what restoring would bring back".
 	res := util.DiffLines(string(oldData), string(newData), 3)
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"path":   rel,
 		"backup": name,
 		"diff":   res,
@@ -221,7 +221,7 @@ func (h *handlers) wipeList(w http.ResponseWriter, r *http.Request) {
 		out = append(out, set)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].ID > out[j].ID })
-	writeJSON(w, map[string]interface{}{"wipes": out, "dir": h.wipesDir()})
+	writeJSON(w, map[string]any{"wipes": out, "dir": h.wipesDir()})
 }
 
 func (h *handlers) wipeRestore(w http.ResponseWriter, r *http.Request) {
@@ -290,5 +290,5 @@ func (h *handlers) wipeRestore(w http.ResponseWriter, r *http.Request) {
 	_ = os.Remove(src)
 
 	h.app.Log.Printf("wipe %s undone: restored %d storage folder(s)", req.ID, len(restored))
-	writeJSON(w, map[string]interface{}{"restored": restored, "count": len(restored)})
+	writeJSON(w, map[string]any{"restored": restored, "count": len(restored)})
 }

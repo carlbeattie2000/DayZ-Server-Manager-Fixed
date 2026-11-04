@@ -84,10 +84,10 @@ type upnpState struct {
 	failed     bool        // the last sync could not set every wanted forward
 }
 
-func (s *upnpState) view() map[string]interface{} {
+func (s *upnpState) view() map[string]any {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return map[string]interface{}{"lastRun": s.LastRun, "running": s.Running, "router": s.Router,
+	return map[string]any{"lastRun": s.LastRun, "running": s.Running, "router": s.Router,
 		"localIp": s.LocalIP, "externalIp": s.ExternalIP, "public": s.Public, "error": s.Error,
 		"ports": append([]portState(nil), s.Ports...)}
 }
@@ -473,7 +473,7 @@ func (h *handlers) remoteFirewall(w http.ResponseWriter, r *http.Request) {
 		_ = os.Remove(path)
 		h.app.Log.Printf("Windows Firewall rules requested (panel TCP %d, game UDP %s)", h.panelPort, strings.Join(game, ","))
 	}()
-	writeJSON(w, map[string]interface{}{"started": true})
+	writeJSON(w, map[string]any{"started": true})
 }
 
 // ---------------------------------------------------------------- status
@@ -489,7 +489,7 @@ func (h *handlers) remoteStatus(w http.ResponseWriter, r *http.Request) {
 	for _, ip := range ips {
 		lan = append(lan, fmt.Sprintf("%s://%s:%d/", scheme, ip, h.panelPort))
 	}
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"os":          runtime.GOOS,
 		"exposure":    cfg.Exposure,
 		"panelPort":   h.panelPort,
@@ -501,7 +501,7 @@ func (h *handlers) remoteStatus(w http.ResponseWriter, r *http.Request) {
 		"upnpGame":    cfg.UPnPGame,
 		"gamePorts":   h.gamePorts(cfg),
 		"upnp":        h.upnp.view(),
-		"firewall": map[string]interface{}{
+		"firewall": map[string]any{
 			"supported": runtime.GOOS == "windows",
 			"panel":     firewallRuleExists(fwPanelRule),
 			"game":      firewallRuleExists(fwGameRule),
@@ -550,7 +550,7 @@ func (h *handlers) remoteCheck(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&req)
 	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
 	defer cancel()
-	out := map[string]interface{}{}
+	out := map[string]any{}
 	gw, err := upnp.Discover(ctx, 3*time.Second)
 	if err != nil {
 		out["upnpError"] = err.Error()

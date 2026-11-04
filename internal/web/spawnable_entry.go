@@ -40,7 +40,7 @@ func (h *handlers) spawnableEntry(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "name required", http.StatusBadRequest)
 			return
 		}
-		out := map[string]interface{}{"name": name, "file": rel(mainPath), "entry": nil}
+		out := map[string]any{"name": name, "file": rel(mainPath), "entry": nil}
 		if e, ok := loadMissionSpawnable(missionDir)[strings.ToLower(name)]; ok {
 			out["entry"], out["file"] = e.st, rel(e.path)
 		}
@@ -92,5 +92,5 @@ func (h *handlers) spawnableEntry(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "saved", "file": rel(path)})
+	writeJSON(w, map[string]any{"status": "saved", "file": rel(path)})
 }

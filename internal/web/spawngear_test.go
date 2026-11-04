@@ -26,28 +26,28 @@ func gearFixture(t *testing.T) (*handlers, string, string) {
 	return h, dir, mission
 }
 
-func gearState(t *testing.T, h *handlers) map[string]interface{} {
+func gearState(t *testing.T, h *handlers) map[string]any {
 	t.Helper()
 	rec := httptest.NewRecorder()
 	h.spawnGearList(rec, httptest.NewRequest("GET", "/api/spawngear", nil))
 	if rec.Code != 200 {
 		t.Fatalf("list: %d %s", rec.Code, rec.Body)
 	}
-	var out map[string]interface{}
+	var out map[string]any
 	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil {
 		t.Fatal(err)
 	}
 	return out
 }
 
-func gearEnable(t *testing.T, h *handlers) map[string]interface{} {
+func gearEnable(t *testing.T, h *handlers) map[string]any {
 	t.Helper()
 	rec := httptest.NewRecorder()
 	h.spawnGearEnable(rec, httptest.NewRequest("POST", "/api/spawngear/enable", strings.NewReader("{}")))
 	if rec.Code != 200 {
 		t.Fatalf("enable: %d %s", rec.Code, rec.Body)
 	}
-	var out map[string]interface{}
+	var out map[string]any
 	_ = json.Unmarshal(rec.Body.Bytes(), &out)
 	return out
 }
@@ -79,12 +79,12 @@ func TestSpawnGearEnableReusesUnlinkedPreset(t *testing.T) {
 	if st["active"] != false {
 		t.Fatal("an unregistered preset must not count as active")
 	}
-	if un, _ := st["unlinked"].([]interface{}); len(un) != 1 {
+	if un, _ := st["unlinked"].([]any); len(un) != 1 {
 		t.Fatalf("the unregistered fresh_spawn.json was not reported: %v", st["unlinked"])
 	}
 
 	out := gearEnable(t, h)
-	if linked, _ := out["linked"].([]interface{}); len(linked) != 1 || linked[0] != "fresh_spawn.json" {
+	if linked, _ := out["linked"].([]any); len(linked) != 1 || linked[0] != "fresh_spawn.json" {
 		t.Fatalf("enable did not reconnect the existing file: %v", out)
 	}
 	if out["created"] != "" {
@@ -162,7 +162,7 @@ func TestSpawnGearSaveNewKeepsExisting(t *testing.T) {
 	if rec.Code != 200 {
 		t.Fatal(rec.Body)
 	}
-	var out map[string]interface{}
+	var out map[string]any
 	_ = json.Unmarshal(rec.Body.Bytes(), &out)
 	if out["file"] != "fresh_spawn_2.json" {
 		t.Fatalf("saved as %v", out["file"])

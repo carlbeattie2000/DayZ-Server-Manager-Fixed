@@ -15,6 +15,8 @@
 // under a "gp." prefix so the panel reaches them with help("gp.<leafKey>").
 package guide
 
+import "maps"
+
 // gameplayHelpEN is the English description of every cfggameplay key
 // (GameplayDefaults), groups included.
 var gameplayHelpEN = map[string]string{
@@ -224,13 +226,9 @@ var gameplayHelpRU = map[string]string{
 // Russian where available, English otherwise.
 func GameplayFieldHelp(lang string) map[string]string {
 	out := make(map[string]string, len(gameplayHelpEN))
-	for k, v := range gameplayHelpEN {
-		out[k] = v
-	}
+	maps.Copy(out, gameplayHelpEN)
 	if lang == "ru" {
-		for k, v := range gameplayHelpRU {
-			out[k] = v
-		}
+		maps.Copy(out, gameplayHelpRU)
 	} else if b := bundleFor(lang); b != nil {
 		for k, v := range b.Gameplay {
 			if v != "" {

@@ -37,14 +37,14 @@ const tuneTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 </types>
 `
 
-func tune(t *testing.T, h *handlers, body string) map[string]interface{} {
+func tune(t *testing.T, h *handlers, body string) map[string]any {
 	t.Helper()
 	rec := httptest.NewRecorder()
 	h.economyTune(rec, httptest.NewRequest("POST", "/api/economy/tune", strings.NewReader(body)))
 	if rec.Code != 200 {
 		t.Fatalf("economyTune(%s) = %d %s", body, rec.Code, rec.Body.String())
 	}
-	var out map[string]interface{}
+	var out map[string]any
 	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil {
 		t.Fatal(err)
 	}
@@ -178,7 +178,7 @@ func TestEconomyScaleKeepsRareItems(t *testing.T) {
 	if *m4.Nominal != 1 || *m4.Min != 1 {
 		t.Errorf("M4A1 after ×0.25 = %d/%d, want 1/1", *m4.Nominal, *m4.Min)
 	}
-	fl, _ := out["floored"].([]interface{})
+	fl, _ := out["floored"].([]any)
 	if len(fl) != 1 || fl[0] != "M4A1" {
 		t.Errorf("floored = %v, want [M4A1]", out["floored"])
 	}

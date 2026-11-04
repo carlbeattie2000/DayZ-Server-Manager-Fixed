@@ -82,10 +82,7 @@ func FetchWorkshopMeta(ctx context.Context, ids map[string]bool) (map[string]Wor
 
 	const batchSize = 100
 	for i := 0; i < len(cleaned); i += batchSize {
-		end := i + batchSize
-		if end > len(cleaned) {
-			end = len(cleaned)
-		}
+		end := min(i+batchSize, len(cleaned))
 		if err := fetchBatch(ctx, cleaned[i:end], out); err != nil {
 			return out, err
 		}

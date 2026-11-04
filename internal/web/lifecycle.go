@@ -46,7 +46,7 @@ func (h *handlers) appLastExit(w http.ResponseWriter, r *http.Request) {
 			sleepSeen.mu.Unlock()
 		}
 	}
-	out := map[string]interface{}{}
+	out := map[string]any{}
 	if e := h.app.LastExit; e != nil && !e.Dismissed {
 		out["exit"] = e
 	}
@@ -96,7 +96,7 @@ func (h *handlers) appKeepAwake(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	out := map[string]interface{}{"mode": h.app.Cfg().KeepAwake, "guardian": !h.app.Cfg().NoGuardian}
+	out := map[string]any{"mode": h.app.Cfg().KeepAwake, "guardian": !h.app.Cfg().NoGuardian}
 	if h.app.KeepingAwake != nil {
 		out["awake"] = h.app.KeepingAwake()
 	}

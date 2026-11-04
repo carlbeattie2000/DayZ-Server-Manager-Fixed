@@ -14,8 +14,10 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -260,7 +262,7 @@ func fingerprint(files []pboFile) string {
 // cls is one class of the merged config tree.
 type cls struct {
 	name, parent string
-	values       map[string]interface{}
+	values       map[string]any
 	pbo          string // the archive that defined it last (base name, lower-case)
 	mod          string
 }
@@ -300,15 +302,13 @@ func build(files []pboFile, mods []string) *Data {
 						k := strings.ToLower(c.Name)
 						old, ok := m[k]
 						if !ok {
-							old = &cls{name: c.Name, values: map[string]interface{}{}}
+							old = &cls{name: c.Name, values: map[string]any{}}
 							m[k] = old
 						}
 						if c.Parent != "" {
 							old.parent = c.Parent
 						}
-						for kk, vv := range c.Values {
-							old.values[kk] = vv
-						}
+						maps.Copy(old.values, c.Values)
 						old.pbo, old.mod = base, f.mod
 					}
 				}
@@ -411,7 +411,7 @@ func build(files []pboFile, mods []string) *Data {
 				}
 			}
 			if v, ok := inherited(m, c, "itemscargosize"); ok {
-				if a, ok := v.([]interface{}); ok && len(a) == 2 {
+				if a, ok := v.([]any); ok && len(a) == 2 {
 					w, _ := a[0].(float64)
 					hh, _ := a[1].(float64)
 					it.cargo = w > 0 && hh > 0
@@ -478,7 +478,7 @@ func ancestry(m map[string]*cls, c *cls) map[string]bool {
 	return out
 }
 
-func inherited(m map[string]*cls, c *cls, key string) (interface{}, bool) {
+func inherited(m map[string]*cls, c *cls, key string) (any, bool) {
 	for n := 0; c != nil && n < 40; n++ {
 		if v, ok := c.values[key]; ok {
 			return v, true
@@ -510,7 +510,7 @@ func inheritedStrings(m map[string]*cls, c *cls, key string) []string {
 		return nil
 	}
 	switch a := v.(type) {
-	case []interface{}:
+	case []any:
 		var out []string
 		for _, x := range a {
 			if s, ok := x.(string); ok {
@@ -616,10 +616,5 @@ func Humanize(class string) string {
 }
 
 func contains(list []string, s string) bool {
-	for _, x := range list {
-		if x == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(list, s)
 }

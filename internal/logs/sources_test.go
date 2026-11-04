@@ -19,7 +19,7 @@ func TestWithPreviousRuns(t *testing.T) {
 	}
 	base := time.Date(2026, 10, 13, 3, 0, 0, 0, time.Local)
 	names := []string{}
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		stamp := base.Add(time.Duration(i) * time.Hour)
 		n := "DayZServer_x64_" + stamp.Format("2006-01-02_15-04-05") + ".RPT"
 		p := filepath.Join(prof, n)

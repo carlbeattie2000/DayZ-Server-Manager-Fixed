@@ -229,10 +229,7 @@ func Tail(ctx <-chan struct{}, path string, tailBytes int64, out func([]byte) er
 	if err != nil {
 		return err
 	}
-	offset := st.Size() - tailBytes
-	if offset < 0 {
-		offset = 0
-	}
+	offset := max(st.Size()-tailBytes, 0)
 	return TailFrom(ctx, path, offset, out)
 }
 

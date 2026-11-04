@@ -496,7 +496,7 @@ func (h *handlers) bansList(w http.ResponseWriter, r *http.Request) {
 	if history == nil {
 		history = []banView{}
 	}
-	writeJSON(w, map[string]interface{}{"active": active, "history": history, "now": now})
+	writeJSON(w, map[string]any{"active": active, "history": history, "now": now})
 }
 
 // namesByID maps player IDs and BattlEye GUIDs to [name, key] from the player
@@ -631,7 +631,7 @@ func (h *handlers) bansAdd(w http.ResponseWriter, r *http.Request) {
 		}
 		h.app.Log.Printf("ban (BattlEye, player #%d): %s until %s — %s", *online, rec.Name, untilText(rec.Until), rec.Reason)
 		h.notifyModeration("ban", rec.Name, rec.Reason, rec.By, rec.Until)
-		writeJSON(w, map[string]interface{}{"ok": true, "ban": rec})
+		writeJSON(w, map[string]any{"ok": true, "ban": rec})
 		return
 	}
 	parts := []string{rec.Name, rec.Reason}
@@ -688,7 +688,7 @@ func (h *handlers) bansAdd(w http.ResponseWriter, r *http.Request) {
 	}
 	h.app.Log.Printf("ban: %s (%s) until %s — %s", nonEmpty(rec.Name, rec.DayZID+rec.GUID+rec.IP), nonEmpty(rec.By, "panel"), untilText(rec.Until), rec.Reason)
 	h.notifyModeration("ban", rec.Name, rec.Reason, rec.By, rec.Until)
-	writeJSON(w, map[string]interface{}{"ok": true, "ban": rec, "reloaded": reloaded})
+	writeJSON(w, map[string]any{"ok": true, "ban": rec, "reloaded": reloaded})
 }
 
 func kickReason(rec banRecord) string {
@@ -748,7 +748,7 @@ func (h *handlers) bansRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.notifyModeration("unban", rec.Name, "", h.actor(r), 0)
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 // liftLocked removes a ban from the game's files and marks its record lifted.
@@ -979,7 +979,7 @@ func (h *handlers) playerKick(w http.ResponseWriter, r *http.Request) {
 	h.app.RCon.InvalidatePlayers()
 	h.logModeration(modEvent{At: time.Now().Unix(), Action: "kick", Key: req.Key, Name: name, Reason: reason, By: h.actor(r)})
 	h.notifyModeration("kick", name, reason, h.actor(r), 0)
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 // playersOnline is the live list for the Players page: RCon's players joined
@@ -989,16 +989,16 @@ func (h *handlers) playersOnline(w http.ResponseWriter, r *http.Request) {
 		// Whether RCon is set up, too: BattlEye reads its password at start, so
 		// the page can say "password first, then start" instead of costing a
 		// second restart.
-		writeJSON(w, map[string]interface{}{"running": false, "configured": h.app.RCon.Configured(), "players": []interface{}{}})
+		writeJSON(w, map[string]any{"running": false, "configured": h.app.RCon.Configured(), "players": []any{}})
 		return
 	}
 	if !h.app.RCon.Configured() {
-		writeJSON(w, map[string]interface{}{"running": true, "rcon": "notConfigured", "players": []interface{}{}})
+		writeJSON(w, map[string]any{"running": true, "rcon": "notConfigured", "players": []any{}})
 		return
 	}
 	ps, err := h.app.RCon.PlayersCached(8 * time.Second)
 	if err != nil {
-		writeJSON(w, map[string]interface{}{"running": true, "rcon": "error", "error": err.Error(), "errorKey": rconErrKey(err), "players": []interface{}{}})
+		writeJSON(w, map[string]any{"running": true, "rcon": "error", "error": err.Error(), "errorKey": rconErrKey(err), "players": []any{}})
 		return
 	}
 	db := h.playersDB()
@@ -1017,9 +1017,9 @@ func (h *handlers) playersOnline(w http.ResponseWriter, r *http.Request) {
 		playMin[p.Key] = p.PlayMin
 	}
 	starts := db.SessionStarts()
-	out := make([]map[string]interface{}, 0, len(ps))
+	out := make([]map[string]any, 0, len(ps))
 	for _, p := range ps {
-		row := map[string]interface{}{"no": p.ID, "name": p.Name, "ping": p.Ping, "ip": p.IP,
+		row := map[string]any{"no": p.ID, "name": p.Name, "ping": p.Ping, "ip": p.IP,
 			"guid": strings.ToLower(p.GUID), "lobby": p.Lobby}
 		if k, ok := byGUID[strings.ToLower(p.GUID)]; ok {
 			row["key"] = k
@@ -1033,7 +1033,7 @@ func (h *handlers) playersOnline(w http.ResponseWriter, r *http.Request) {
 		out = append(out, row)
 	}
 	locked, lockedAt := h.joinLocked()
-	res := map[string]interface{}{"running": true, "rcon": "ok", "players": out, "locked": locked}
+	res := map[string]any{"running": true, "rcon": "ok", "players": out, "locked": locked}
 	if locked {
 		res["lockedAt"] = lockedAt.Format(time.RFC3339)
 	}

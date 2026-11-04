@@ -44,7 +44,7 @@ func TestParseChatLine(t *testing.T) {
 
 func TestRecentChatRingBuffer(t *testing.T) {
 	m := NewManager()
-	for i := 0; i < chatBufferMax+50; i++ {
+	for range chatBufferMax + 50 {
 		m.onServerMessage("(Global) P: msg")
 	}
 	if got := len(m.RecentChat(0)); got != chatBufferMax {

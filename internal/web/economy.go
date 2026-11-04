@@ -101,7 +101,7 @@ func (h *handlers) economyStats(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"file":         path,
 		"total":        len(doc.Types),
 		"totalNominal": totalNominal,
@@ -229,7 +229,7 @@ func (h *handlers) economyTune(w http.ResponseWriter, r *http.Request) {
 	if req.Reset {
 		if !hasBase {
 			// Never scaled through here, so there's nothing to restore.
-			writeJSON(w, map[string]interface{}{"reset": true, "hadBaseline": false})
+			writeJSON(w, map[string]any{"reset": true, "hadBaseline": false})
 			return
 		}
 		base, berr := dztypes.Load(basePath)
@@ -246,7 +246,7 @@ func (h *handlers) economyTune(w http.ResponseWriter, r *http.Request) {
 		// The file holds the snapshot's amounts again. The next scaling takes a
 		// fresh snapshot, so edits made after this reset survive a later ×1.
 		_ = os.Remove(basePath)
-		writeJSON(w, map[string]interface{}{"reset": true, "hadBaseline": true, "restored": restored})
+		writeJSON(w, map[string]any{"reset": true, "hadBaseline": true, "restored": restored})
 		return
 	}
 
@@ -276,5 +276,5 @@ func (h *handlers) economyTune(w http.ResponseWriter, r *http.Request) {
 	if floored == nil {
 		floored = []string{}
 	}
-	writeJSON(w, map[string]interface{}{"touched": touched, "factor": req.Factor, "floored": floored})
+	writeJSON(w, map[string]any{"touched": touched, "factor": req.Factor, "floored": floored})
 }

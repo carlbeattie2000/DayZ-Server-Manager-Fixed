@@ -16,22 +16,22 @@ import (
 func TestVehicleVariantsReadAndSave(t *testing.T) {
 	h, _, m := vehicleFixture(t)
 
-	get := func(event string) map[string]interface{} {
+	get := func(event string) map[string]any {
 		rec := httptest.NewRecorder()
 		h.vehiclesVariants(rec, httptest.NewRequest("GET", "/api/vehicles/variants?event="+event, nil))
 		if rec.Code != 200 {
 			t.Fatalf("GET %s: %d %s", event, rec.Code, rec.Body.String())
 		}
-		var out map[string]interface{}
+		var out map[string]any
 		_ = json.Unmarshal(rec.Body.Bytes(), &out)
 		return out
 	}
 	out := get("ModPickup")
-	vs, _ := out["variants"].([]interface{})
+	vs, _ := out["variants"].([]any)
 	if len(vs) != 1 {
 		t.Fatalf("variants: %v", out)
 	}
-	v := vs[0].(map[string]interface{})
+	v := vs[0].(map[string]any)
 	if v["type"] != "Pickup_Red" || v["file"] != "carmod_ce/carmod_spawnabletypes.xml" || v["entry"] == nil {
 		t.Fatalf("variant: %v", v)
 	}

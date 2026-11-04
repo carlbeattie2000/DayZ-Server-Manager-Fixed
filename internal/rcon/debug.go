@@ -18,7 +18,7 @@ var (
 	Debug = os.Getenv("DAYZ_RCON_DEBUG") == "1"
 )
 
-func dbg(format string, args ...interface{}) {
+func dbg(format string, args ...any) {
 	if Debug && Logger != nil {
 		Logger.Printf("[rcon] "+format, args...)
 	}

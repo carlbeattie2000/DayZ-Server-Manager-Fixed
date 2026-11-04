@@ -76,7 +76,7 @@ func (h *handlers) playerProfile(w http.ResponseWriter, r *http.Request) {
 	}
 	pl.Online = online
 
-	out := map[string]interface{}{
+	out := map[string]any{
 		"player":   pl,
 		"events":   events,
 		"banned":   ban != nil,
@@ -102,10 +102,10 @@ func (h *handlers) playerProfile(w http.ResponseWriter, r *http.Request) {
 	// Other players last seen from the same address: a second account, a
 	// family, a LAN party — for the admin to judge, e.g. after a ban.
 	if addr := firstNonEmpty(ip, pl.LastIP); addr != "" {
-		var same []map[string]interface{}
+		var same []map[string]any
 		for _, o := range list {
 			if o.Key != pl.Key && o.LastIP == addr {
-				same = append(same, map[string]interface{}{"key": o.Key, "name": o.Name, "lastSeen": o.LastSeen})
+				same = append(same, map[string]any{"key": o.Key, "name": o.Name, "lastSeen": o.LastSeen})
 			}
 		}
 		if len(same) > 0 {

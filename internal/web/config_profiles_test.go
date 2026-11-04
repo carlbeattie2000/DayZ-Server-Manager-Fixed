@@ -82,14 +82,14 @@ func TestImportCopiesTheMission(t *testing.T) {
 	put(t, cfgPath, "hostname = \"x\";\nclass Missions\n{\n\tclass DayZ\n\t{\n\t\ttemplate=\"dayzOffline.chernarusplus\";\n\t};\n};\n")
 	src := t.TempDir()
 	put(t, filepath.Join(src, "mpmissions", "custom.deerisle", "init.c"), "void main() {}")
-	apply := func(mission string) map[string]interface{} {
+	apply := func(mission string) map[string]any {
 		body, _ := json.Marshal(map[string]string{"sourceDir": src, "mission": mission})
 		rec := httptest.NewRecorder()
 		h.importApply(rec, httptest.NewRequest("POST", "/api/import/apply", strings.NewReader(string(body))))
 		if rec.Code != 200 {
 			t.Fatalf("import %s: %d %s", mission, rec.Code, rec.Body.String())
 		}
-		var out map[string]interface{}
+		var out map[string]any
 		_ = json.Unmarshal(rec.Body.Bytes(), &out)
 		return out
 	}

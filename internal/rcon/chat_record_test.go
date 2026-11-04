@@ -97,7 +97,7 @@ func TestInFlightEchoDoesNotExpire(t *testing.T) {
 func TestSeedChatKeepsNewest(t *testing.T) {
 	m := NewManager()
 	var old []ChatMsg
-	for i := 0; i < chatBufferMax+50; i++ {
+	for i := range chatBufferMax + 50 {
 		old = append(old, ChatMsg{At: int64(i), Text: "x"})
 	}
 	m.SeedChat(old)

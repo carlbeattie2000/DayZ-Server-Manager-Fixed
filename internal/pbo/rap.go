@@ -20,7 +20,7 @@ type Class struct {
 	Name    string
 	Parent  string // inherited class name ("" for none)
 	Classes []*Class
-	Values  map[string]interface{} // string | float64 | []interface{} (lower-case keys)
+	Values  map[string]any // string | float64 | []interface{} (lower-case keys)
 }
 
 // Child returns the sub-class with this name (case-insensitive).
@@ -57,7 +57,7 @@ func (c *Class) String(key string) (string, bool) {
 
 // Strings reads an array of strings (other elements skipped).
 func (c *Class) Strings(key string) []string {
-	arr, _ := c.Values[strings.ToLower(key)].([]interface{})
+	arr, _ := c.Values[strings.ToLower(key)].([]any)
 	var out []string
 	for _, v := range arr {
 		if s, ok := v.(string); ok {
@@ -68,7 +68,7 @@ func (c *Class) Strings(key string) []string {
 }
 
 func newClass(name, parent string) *Class {
-	return &Class{Name: name, Parent: parent, Values: map[string]interface{}{}}
+	return &Class{Name: name, Parent: parent, Values: map[string]any{}}
 }
 
 // ParseConfig reads a binarized (raP) or text config.
@@ -121,7 +121,7 @@ func (r *rapReader) asciiz(at *int) (string, error) {
 // cint reads Bohemia's compressed integer (7 bits per byte, low first).
 func (r *rapReader) cint(at *int) (int, error) {
 	v, shift := 0, 0
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		b, err := r.u8(at)
 		if err != nil {
 			return 0, err
@@ -166,7 +166,7 @@ func (r *rapReader) body(offset int, c *Class) error {
 	if n > 100000 {
 		return errors.New("rap: too many entries")
 	}
-	for i := 0; i < n; i++ {
+	for range n {
 		typ, err := r.u8(&at)
 		if err != nil {
 			return err
@@ -226,7 +226,7 @@ func (r *rapReader) body(offset int, c *Class) error {
 	return nil
 }
 
-func (r *rapReader) scalar(at *int, sub byte) (interface{}, error) {
+func (r *rapReader) scalar(at *int, sub byte) (any, error) {
 	switch sub {
 	case 0, 4: // string, variable name
 		return r.asciiz(at)
@@ -247,7 +247,7 @@ func (r *rapReader) scalar(at *int, sub byte) (interface{}, error) {
 	return nil, fmt.Errorf("rap: unknown value type %d", sub)
 }
 
-func (r *rapReader) array(at *int) ([]interface{}, error) {
+func (r *rapReader) array(at *int) ([]any, error) {
 	r.depth++
 	defer func() { r.depth-- }()
 	if r.depth > 64 {
@@ -260,8 +260,8 @@ func (r *rapReader) array(at *int) ([]interface{}, error) {
 	if n > 100000 {
 		return nil, errors.New("rap: array too long")
 	}
-	out := make([]interface{}, 0, n)
-	for i := 0; i < n; i++ {
+	out := make([]any, 0, n)
+	for range n {
 		typ, err := r.u8(at)
 		if err != nil {
 			return nil, err
@@ -385,7 +385,7 @@ func (p *textParser) body(c *Class, top bool) error {
 	return nil
 }
 
-func (p *textParser) scalar() interface{} {
+func (p *textParser) scalar() any {
 	var parts []string
 	for p.i < len(p.toks) && p.peek() != ";" && p.peek() != "}" {
 		parts = append(parts, p.next())
@@ -403,13 +403,13 @@ func (p *textParser) scalar() interface{} {
 	return s
 }
 
-func (p *textParser) array() []interface{} {
+func (p *textParser) array() []any {
 	if p.peek() != "{" {
 		p.scalar()
 		return nil
 	}
 	p.next()
-	var out []interface{}
+	var out []any
 	for p.i < len(p.toks) {
 		t := p.peek()
 		switch t {

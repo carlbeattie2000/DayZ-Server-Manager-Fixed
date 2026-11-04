@@ -44,16 +44,16 @@ func (h *handlers) health(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	writeJSON(w, map[string]interface{}{
-		"server": map[string]interface{}{
+	writeJSON(w, map[string]any{
+		"server": map[string]any{
 			"running":    running,
 			"loopPaused": h.app.Server.LoopPaused(),
 			"pid":        h.app.Server.PID(),
 			"uptime":     h.app.Server.Uptime().Round(time.Second).String(),
 			"uptimeSec":  int64(h.app.Server.Uptime().Seconds()),
 		},
-		"disk":    map[string]interface{}{"free": diskFree},
-		"startup": map[string]interface{}{"fatal": dFatal, "warnings": dWarn},
+		"disk":    map[string]any{"free": diskFree},
+		"startup": map[string]any{"fatal": dFatal, "warnings": dWarn},
 	})
 }
 
@@ -214,11 +214,11 @@ func (h *handlers) cleanupScan(w http.ResponseWriter, r *http.Request) {
 	ac, ab := h.cleanupSelect("adm", true)
 	bc, bb := h.cleanupSelect("backups", true)
 	wc, wb := h.wipesCleanup(true)
-	writeJSON(w, map[string]interface{}{
-		"logs":    map[string]interface{}{"count": lc, "bytes": lb},
-		"adm":     map[string]interface{}{"count": ac, "bytes": ab},
-		"backups": map[string]interface{}{"count": bc, "bytes": bb},
-		"wipes":   map[string]interface{}{"count": wc, "bytes": wb},
+	writeJSON(w, map[string]any{
+		"logs":    map[string]any{"count": lc, "bytes": lb},
+		"adm":     map[string]any{"count": ac, "bytes": ab},
+		"backups": map[string]any{"count": bc, "bytes": bb},
+		"wipes":   map[string]any{"count": wc, "bytes": wb},
 	})
 }
 
@@ -246,5 +246,5 @@ func (h *handlers) cleanupRun(w http.ResponseWriter, r *http.Request) {
 		count, freed = h.cleanupSelect(req.Target, false)
 	}
 	h.app.Log.Printf("cleanup %s: removed %d file(s), freed %d bytes", req.Target, count, freed)
-	writeJSON(w, map[string]interface{}{"deleted": count, "freed": freed})
+	writeJSON(w, map[string]any{"deleted": count, "freed": freed})
 }

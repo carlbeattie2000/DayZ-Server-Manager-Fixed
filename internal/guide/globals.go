@@ -7,6 +7,8 @@
 // A variable with no entry simply shows no tooltip.
 package guide
 
+import "maps"
+
 var globalsHelpEN = map[string]string{
 	"AnimalMaxCount":              "Maximum number of animals alive on the map at once.",
 	"ZombieMaxCount":              "Maximum number of infected alive on the map at once.",
@@ -80,13 +82,9 @@ var globalsHelpRU = map[string]string{
 // GlobalsFieldHelp returns globals.xml variable descriptions for a locale.
 func GlobalsFieldHelp(lang string) map[string]string {
 	out := make(map[string]string, len(globalsHelpEN))
-	for k, v := range globalsHelpEN {
-		out[k] = v
-	}
+	maps.Copy(out, globalsHelpEN)
 	if lang == "ru" {
-		for k, v := range globalsHelpRU {
-			out[k] = v
-		}
+		maps.Copy(out, globalsHelpRU)
 	} else if b := bundleFor(lang); b != nil {
 		for k, v := range b.Globals {
 			if v != "" {

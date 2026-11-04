@@ -26,6 +26,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"time"
 )
@@ -67,12 +68,7 @@ func (s *Server) panelTLSConfig() (*tls.Config, error) {
 const ownCertOrg = "DayZ Server Manager (self-signed)"
 
 func isOwnCert(c *x509.Certificate) bool {
-	for _, o := range c.Subject.Organization {
-		if o == ownCertOrg {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(c.Subject.Organization, ownCertOrg)
 }
 
 func generateSelfSigned(certPath, keyPath string) error {

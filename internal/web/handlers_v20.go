@@ -141,7 +141,7 @@ func (h *handlers) spawnGearList(w http.ResponseWriter, r *http.Request) {
 
 	_, gpErr := os.Stat(gameplayPath)
 	flag := h.cfgGameplayEnabled()
-	out := map[string]interface{}{
+	out := map[string]any{
 		"presets":     presets,
 		"unlinked":    unlinked,
 		"cfgGameplay": gpErr == nil, // the file exists
@@ -235,7 +235,7 @@ func (h *handlers) spawnGearSave(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	flagSet := h.ensureCfgGameplayFlag()
-	writeJSON(w, map[string]interface{}{"status": "saved", "file": rel, "flagSet": flagSet})
+	writeJSON(w, map[string]any{"status": "saved", "file": rel, "flagSet": flagSet})
 }
 
 // spawnGearDelete removes a preset file and unregisters it.
@@ -270,7 +270,7 @@ func (h *handlers) spawnGearDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = os.Remove(full) // the file may already be gone; unregistering is what matters
-	writeJSON(w, map[string]interface{}{"status": "deleted", "file": rel})
+	writeJSON(w, map[string]any{"status": "deleted", "file": rel})
 }
 
 // spawnGearEnable switches the loadout system on, whatever state it is in:
@@ -345,7 +345,7 @@ func (h *handlers) spawnGearEnable(w http.ResponseWriter, r *http.Request) {
 	if linked == nil {
 		linked = []string{}
 	}
-	writeJSON(w, map[string]interface{}{"status": "enabled", "linked": linked,
+	writeJSON(w, map[string]any{"status": "enabled", "linked": linked,
 		"created": created, "flagSet": flagSet})
 }
 
@@ -390,7 +390,7 @@ func (h *handlers) spawnGearRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	flagSet := h.ensureCfgGameplayFlag()
-	writeJSON(w, map[string]interface{}{"status": "linked", "file": req.File, "flagSet": flagSet})
+	writeJSON(w, map[string]any{"status": "linked", "file": req.File, "flagSet": flagSet})
 }
 
 // ensureGameplayFile gives a mission without cfggameplay.json the vanilla one,

@@ -287,5 +287,5 @@ func (h *handlers) sponsorsList(w http.ResponseWriter, r *http.Request) {
 	if out == nil {
 		out = []Sponsor{}
 	}
-	writeJSON(w, map[string]interface{}{"sponsors": out})
+	writeJSON(w, map[string]any{"sponsors": out})
 }

@@ -191,7 +191,7 @@ func ProcessAffinity(pid int) ([]int, error) {
 		return nil, e
 	}
 	var out []int
-	for i := 0; i < int(unsafe.Sizeof(procMask))*8; i++ {
+	for i := range int(unsafe.Sizeof(procMask)) * 8 {
 		if procMask&(1<<uint(i)) != 0 {
 			out = append(out, i)
 		}

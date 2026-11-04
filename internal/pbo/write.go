@@ -47,7 +47,7 @@ func Write(path string, props [][2]string, files []WriteFile) error {
 	}
 	// End of the table: an empty entry.
 	z("")
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		u32(0)
 	}
 	for _, f := range files {

@@ -98,7 +98,7 @@ func TestBEBanExpiry(t *testing.T) {
 // recorded; a timed one is lifted by the expiry pass.
 func TestBanByTargetAndExpiry(t *testing.T) {
 	h, dir := testHandlers(t)
-	post := func(path string, body interface{}) *httptest.ResponseRecorder {
+	post := func(path string, body any) *httptest.ResponseRecorder {
 		data, _ := json.Marshal(body)
 		r := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(data))
 		w := httptest.NewRecorder()
@@ -110,10 +110,10 @@ func TestBanByTargetAndExpiry(t *testing.T) {
 		}
 		return w
 	}
-	if w := post("/api/bans/add", map[string]interface{}{"target": "not an id"}); w.Code != http.StatusBadRequest {
+	if w := post("/api/bans/add", map[string]any{"target": "not an id"}); w.Code != http.StatusBadRequest {
 		t.Fatalf("bad target: %d", w.Code)
 	}
-	w := post("/api/bans/add", map[string]interface{}{"target": "76561198120341761", "minutes": 60, "reason": "cheating"})
+	w := post("/api/bans/add", map[string]any{"target": "76561198120341761", "minutes": 60, "reason": "cheating"})
 	if w.Code != 200 {
 		t.Fatalf("add: %d %s", w.Code, w.Body)
 	}

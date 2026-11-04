@@ -230,7 +230,7 @@ func (c *ServerCfg) IsQuoted(key string) bool {
 
 // Set updates or inserts a key=value pair. When val is a string it is quoted;
 // ints/bools are rendered bare.
-func (c *ServerCfg) Set(key string, val interface{}) {
+func (c *ServerCfg) Set(key string, val any) {
 	c.setRendered(key, renderValue(val))
 }
 
@@ -349,7 +349,7 @@ func (c *ServerCfg) SetString(key, val string) {
 	c.setRendered(key, quoteCfg(val))
 }
 
-func renderValue(val interface{}) string {
+func renderValue(val any) string {
 	switch v := val.(type) {
 	case string:
 		// If caller already quoted it, leave alone; else detect numeric/bool shorthand.

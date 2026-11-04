@@ -122,7 +122,7 @@ func (t *Tool) Install(ctx context.Context) error {
 			return fmt.Errorf("unpack SteamCMD: %w", err)
 		}
 	}
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		_, code, err := t.runLocked(ctx, 20*time.Minute, "+quit")
 		if err != nil {
 			return err

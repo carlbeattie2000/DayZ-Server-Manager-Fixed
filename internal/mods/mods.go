@@ -485,7 +485,7 @@ func resolveSymlink(dir string) string {
 	if r, err := filepath.EvalSymlinks(dir); err == nil && r != "" {
 		dir = r
 	}
-	for i := 0; i < 8; i++ {
+	for range 8 {
 		fi, err := os.Lstat(dir)
 		if err != nil || fi.Mode()&(os.ModeSymlink|os.ModeIrregular) == 0 {
 			break

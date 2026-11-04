@@ -434,7 +434,7 @@ func (h *handlers) vehiclesMods(w http.ResponseWriter, r *http.Request) {
 			out = append(out, mv)
 		}
 	}
-	writeJSON(w, map[string]interface{}{"mods": out, "auto": !cfg.AutoModVehiclesOff})
+	writeJSON(w, map[string]any{"mods": out, "auto": !cfg.AutoModVehiclesOff})
 }
 
 // dzmFolder is where imported vehicle definitions live inside the mission.

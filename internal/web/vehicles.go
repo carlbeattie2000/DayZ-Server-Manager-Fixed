@@ -176,7 +176,7 @@ func (h *handlers) vehiclesList(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
-	writeJSON(w, map[string]interface{}{"file": files[0].Path, "vehicles": out, "map": h.currentMap(), "problems": problems,
+	writeJSON(w, map[string]any{"file": files[0].Path, "vehicles": out, "map": h.currentMap(), "problems": problems,
 		"tweaksMod": app.TweaksMod})
 }
 
@@ -236,7 +236,7 @@ func (h *handlers) vehiclesTweak(w http.ResponseWriter, r *http.Request) {
 		}
 		applied = true
 	}
-	writeJSON(w, map[string]interface{}{"ok": true, "applied": applied})
+	writeJSON(w, map[string]any{"ok": true, "applied": applied})
 }
 
 // partsComplete: every attachment slot is certain to spawn (slot chance 1,
@@ -366,7 +366,7 @@ func (h *handlers) vehiclesParts(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no variant of this vehicle has parts in cfgspawnabletypes.xml", http.StatusNotFound)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "saved", "variants": touched})
+	writeJSON(w, map[string]any{"status": "saved", "variants": touched})
 }
 
 // vehicleVariant is one colour variant's parts as cfgspawnabletypes has them.
@@ -426,7 +426,7 @@ func (h *handlers) vehiclesVariants(w http.ResponseWriter, r *http.Request) {
 				out = append(out, vv)
 			}
 		}
-		writeJSON(w, map[string]interface{}{"event": ev.Name, "variants": out})
+		writeJSON(w, map[string]any{"event": ev.Name, "variants": out})
 		return
 	}
 
@@ -501,7 +501,7 @@ func (h *handlers) vehiclesVariants(w http.ResponseWriter, r *http.Request) {
 		}
 		saved++
 	}
-	writeJSON(w, map[string]interface{}{"status": "saved", "variants": saved})
+	writeJSON(w, map[string]any{"status": "saved", "variants": saved})
 }
 
 // cleanSpawnGroups drops parts without a name and groups left without parts,

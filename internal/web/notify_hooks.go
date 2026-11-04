@@ -69,7 +69,7 @@ func (h *handlers) discordCatalog(w http.ResponseWriter, r *http.Request) {
 		icon, color := app.DiscordStyle(e.Key)
 		items = append(items, item{e, icon, fmt.Sprintf("#%06x", color)})
 	}
-	writeJSON(w, map[string]interface{}{"events": items, "languages": i18n.Languages()})
+	writeJSON(w, map[string]any{"events": items, "languages": i18n.Languages()})
 }
 
 // onChat forwards in-game chat to Discord: players' lines on public channels

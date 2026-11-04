@@ -93,7 +93,7 @@ func TestSetRegisteredGearFilesPreservesOtherConfig(t *testing.T) {
 	}
 
 	data, _ := os.ReadFile(gp)
-	var doc map[string]interface{}
+	var doc map[string]any
 	if err := json.Unmarshal(data, &doc); err != nil {
 		t.Fatalf("registration produced invalid JSON: %v", err)
 	}
@@ -104,11 +104,11 @@ func TestSetRegisteredGearFilesPreservesOtherConfig(t *testing.T) {
 	if doc["GeneralData"] == nil || doc["WorldsData"] == nil {
 		t.Error("an unrelated top-level section was dropped")
 	}
-	pd := doc["PlayerData"].(map[string]interface{})
+	pd := doc["PlayerData"].(map[string]any)
 	if pd["disableRespawnDialog"] != false {
 		t.Error("a sibling field inside PlayerData was dropped")
 	}
-	got := pd["spawnGearPresetFiles"].([]interface{})
+	got := pd["spawnGearPresetFiles"].([]any)
 	if len(got) != 2 || got[0] != "fresh.json" {
 		t.Errorf("preset list wrong: %v", got)
 	}
@@ -132,7 +132,7 @@ func TestSetRegisteredGearFilesCreatesFile(t *testing.T) {
 		t.Fatalf("files=%v err=%v", files, err)
 	}
 	data, _ := os.ReadFile(gp)
-	var doc map[string]interface{}
+	var doc map[string]any
 	if json.Unmarshal(data, &doc) != nil || doc["version"] == nil {
 		t.Error("created cfggameplay.json is missing a version")
 	}

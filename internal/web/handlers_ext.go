@@ -119,7 +119,7 @@ func (h *handlers) beDir() string {
 }
 
 func (h *handlers) battleyeList(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"dir":   h.beDir(),
 		"files": battleye.List(h.beDir()),
 	})
@@ -132,7 +132,7 @@ func (h *handlers) battleyeRead(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"name": name, "content": content})
+	writeJSON(w, map[string]any{"name": name, "content": content})
 }
 
 func (h *handlers) battleyeWrite(w http.ResponseWriter, r *http.Request) {
@@ -262,7 +262,7 @@ func (h *handlers) battleyeBans(w http.ResponseWriter, r *http.Request) {
 			bans[i].Perm, bans[i].Until = beBanExpiry(bans[i].Minutes, mod)
 			bans[i].Expired = !bans[i].Perm && bans[i].Until <= now
 		}
-		writeJSON(w, map[string]interface{}{"path": path, "bans": bans, "now": now})
+		writeJSON(w, map[string]any{"path": path, "bans": bans, "now": now})
 		return
 	}
 
@@ -315,7 +315,7 @@ func (h *handlers) battleyeBans(w http.ResponseWriter, r *http.Request) {
 			reloaded = true
 		}
 	}
-	writeJSON(w, map[string]interface{}{"status": "saved", "reloaded": reloaded, "count": len(req.Bans)})
+	writeJSON(w, map[string]any{"status": "saved", "reloaded": reloaded, "count": len(req.Bans)})
 }
 
 // ---------------------------------------------------------------------------
@@ -485,7 +485,7 @@ func (h *handlers) missionDBList(w http.ResponseWriter, r *http.Request) {
 		out = append(out, e)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Path < out[j].Path })
-	writeJSON(w, map[string]interface{}{"dir": dir, "files": out})
+	writeJSON(w, map[string]any{"dir": dir, "files": out})
 }
 
 func (h *handlers) missionDBResolve(rel string) (string, error) {
@@ -533,7 +533,7 @@ func (h *handlers) missionDBRead(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"path": rel, "content": string(body)})
+	writeJSON(w, map[string]any{"path": rel, "content": string(body)})
 }
 
 // reRawComment strips XML comments before the well-formedness check. Vanilla
@@ -545,7 +545,7 @@ var reRawComment = regexp.MustCompile(`(?s)<!--.*?-->`)
 func checkSyntax(path, content string) error {
 	switch strings.ToLower(filepath.Ext(path)) {
 	case ".json":
-		var probe interface{}
+		var probe any
 		if err := json.Unmarshal([]byte(content), &probe); err != nil {
 			return fmt.Errorf("not valid JSON: %v — DayZ ignores the whole file on a single syntax error", err)
 		}
@@ -611,111 +611,4 @@ func (h *handlers) missionDBWrite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, map[string]string{"status": "saved"})
-}
-
-// ---------------------------------------------------------------------------
-// Scheduled announcements.
-
-// (The old /api/announcements endpoint was removed — scheduled announcements
-// are now part of the manager config and saved via /api/config, item #2.)
-
-// ---------------------------------------------------------------------------
-// Mods: Workshop staleness check.
-//
-// Compares the *Workshop-side* mod folder mtime (i.e. the user's local Steam
-// download) against Steam's published time_updated. A mod is "outdated" when
-// the local Workshop copy is older than what Steam reports — meaning the
-// user needs to run Steam to pull the new files before SyncAll can copy them
-// into the server dir. We surface PublishedID, local time, remote time, and
-// the diff so the frontend can render a clear stale/up-to-date state.
-//
-// Mods without a meta.cpp PublishedID are skipped (e.g. hand-rolled @Mods).
-
-func (h *handlers) modsCheckUpdates(w http.ResponseWriter, r *http.Request) {
-	// Works without a mod source too (server-only hosting): the installed
-	// copies' meta.cpp timestamps are compared with Steam, so the admin still
-	// learns which mods need a fresh upload.
-	list, err := mods.List(h.app.ServerDir, h.app.Cfg().ModSourceDir())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	idToMod := map[string]*mods.Mod{}
-	ids := make([]string, 0, len(list))
-	for i := range list {
-		m := &list[i]
-		if m.PublishedID == "" {
-			continue
-		}
-		idToMod[m.PublishedID] = m
-		ids = append(ids, m.PublishedID)
-	}
-	var idsMap map[string]bool
-	for _, id := range ids {
-		idsMap[id] = true
-	}
-	remote, err := mods.FetchWorkshopMeta(r.Context(), idsMap)
-	if err != nil {
-		// Partial results are still useful — return what we got with the error.
-		writeJSON(w, map[string]interface{}{
-			"error":   err.Error(),
-			"results": buildCheckResults(idToMod, remote),
-		})
-		return
-	}
-	writeJSON(w, map[string]interface{}{
-		"results": buildCheckResults(idToMod, remote),
-	})
-}
-
-// localUpdated is when the local copy was published on the Workshop: meta.cpp's
-// timestamp when present (exact), else the source copy's newest file, else the
-// server copy's.
-func localUpdated(m *mods.Mod) time.Time {
-	if t := mods.MetaTime(m.MetaTimestamp); !t.IsZero() {
-		return t
-	}
-	if !m.WorkshopModifiedAt.IsZero() {
-		return m.WorkshopModifiedAt
-	}
-	return m.ServerModifiedAt
-}
-
-func buildCheckResults(idToMod map[string]*mods.Mod, remote map[string]mods.WorkshopRemote) []map[string]interface{} {
-	out := make([]map[string]interface{}, 0, len(idToMod))
-	for id, m := range idToMod {
-		row := map[string]interface{}{
-			"name":         m.Name,
-			"publishedId":  id,
-			"localUpdated": localUpdated(m),
-		}
-		r, ok := remote[id]
-		if !ok {
-			row["status"] = "unknown"
-			out = append(out, row)
-			continue
-		}
-		row["title"] = r.Title
-		row["remoteUpdated"] = r.TimeUpdated
-		row["remoteResult"] = r.Result
-		switch {
-		case r.Result != 1:
-			row["status"] = "missing" // ID was removed/private on Steam
-		case r.TimeUpdated.IsZero():
-			row["status"] = "unknown"
-		case localUpdated(m).IsZero():
-			row["status"] = "unknown"
-		case r.TimeUpdated.After(localUpdated(m).Add(2 * time.Minute)):
-			row["status"] = "outdated"
-		default:
-			row["status"] = "ok"
-		}
-		out = append(out, row)
-	}
-	sort.Slice(out, func(i, j int) bool {
-		ai, _ := out[i]["name"].(string)
-		aj, _ := out[j]["name"].(string)
-		return strings.ToLower(ai) < strings.ToLower(aj)
-	})
-	return out
 }

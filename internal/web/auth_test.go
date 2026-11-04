@@ -170,7 +170,7 @@ func TestLoginLockout(t *testing.T) {
 	}(); err != nil {
 		t.Fatal(err)
 	}
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		if w := do(hd, "POST", "/api/auth/login", `{"user":"admin","password":"wrong-pass"}`, nil); w.Code != 401 {
 			t.Fatalf("attempt %d: %d", i, w.Code)
 		}
@@ -222,7 +222,6 @@ func TestGuardLANOnly(t *testing.T) {
 		"[fd12::1]:1000":   200,
 		"127.0.0.1:1000":   200,
 	} {
-		addr := addr
 		w := do(hd, "GET", "/api/secret", "", func(r *http.Request) { r.RemoteAddr = addr })
 		if w.Code != want {
 			t.Errorf("%s: %d, want %d", addr, w.Code, want)
@@ -246,11 +245,11 @@ func TestLocalLoginToken(t *testing.T) {
 		t.Fatal(err)
 	}
 	u := s.LocalLoginURL("http://127.0.0.1:8787/")
-	i := strings.Index(u, "#autologin=")
-	if i < 0 {
+	_, after, ok := strings.Cut(u, "#autologin=")
+	if !ok {
 		t.Fatalf("no token in %s", u)
 	}
-	tok := u[i+len("#autologin="):]
+	tok := after
 	remote := func(r *http.Request) { r.RemoteAddr = "192.168.1.9:5000" }
 	// Refused either way: with "Local only" the guard already turns
 	// another machine away (403); the endpoint's own loopback check says 401.

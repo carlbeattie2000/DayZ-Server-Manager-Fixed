@@ -34,6 +34,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"sort"
@@ -296,15 +297,13 @@ func (p *GearPreset) Save(path string) error {
 	if len(p.extra) > 0 {
 		var m map[string]json.RawMessage
 		_ = json.Unmarshal(base, &m)
-		for k, v := range p.extra {
-			m[k] = v
-		}
+		maps.Copy(m, p.extra)
 		base, err = json.Marshal(m)
 		if err != nil {
 			return err
 		}
 	}
-	var out map[string]interface{}
+	var out map[string]any
 	if err := json.Unmarshal(base, &out); err != nil {
 		return err
 	}
@@ -401,7 +400,7 @@ func RegisteredGearFiles(gameplayPath string) ([]string, error) {
 // the given list, creating cfggameplay.json (with a version) if absent and
 // leaving every other field untouched.
 func SetRegisteredGearFiles(gameplayPath string, files []string) error {
-	root := map[string]interface{}{}
+	root := map[string]any{}
 	if data, err := os.ReadFile(gameplayPath); err == nil {
 		if err := json.Unmarshal(data, &root); err != nil {
 			return fmt.Errorf("parse cfggameplay.json: %w", err)
@@ -412,13 +411,13 @@ func SetRegisteredGearFiles(gameplayPath string, files []string) error {
 	if _, ok := root["version"]; !ok {
 		root["version"] = 1
 	}
-	pd, _ := root["PlayerData"].(map[string]interface{})
+	pd, _ := root["PlayerData"].(map[string]any)
 	if pd == nil {
-		pd = map[string]interface{}{}
+		pd = map[string]any{}
 	}
 	// json.MarshalIndent renders []string cleanly; store as []interface{} to
 	// keep the surrounding map homogeneous.
-	arr := make([]interface{}, 0, len(files))
+	arr := make([]any, 0, len(files))
 	for _, f := range files {
 		arr = append(arr, f)
 	}

@@ -67,7 +67,7 @@ func (h *handlers) playersList(w http.ResponseWriter, r *http.Request) {
 			onlineCount++
 		}
 	}
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"players":  list,
 		"killfeed": kills,
 		"total":    len(list),
@@ -91,7 +91,7 @@ func (h *handlers) playerNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unknown player", http.StatusNotFound)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "saved", "key": req.Key, "note": strings.TrimSpace(req.Note), "watch": req.Watch})
+	writeJSON(w, map[string]any{"status": "saved", "key": req.Key, "note": strings.TrimSpace(req.Note), "watch": req.Watch})
 }
 
 // watchlistActivity returns recent connects of watch-flagged players, for the
@@ -99,7 +99,7 @@ func (h *handlers) playerNote(w http.ResponseWriter, r *http.Request) {
 func (h *handlers) watchlistActivity(w http.ResponseWriter, r *http.Request) {
 	db := h.playersDB()
 	db.Ingest(h.profilesAbs())
-	writeJSON(w, map[string]interface{}{"events": db.WatchActivity()})
+	writeJSON(w, map[string]any{"events": db.WatchActivity()})
 }
 
 // playersIngestLoop keeps the database current even when nobody has the page
@@ -133,7 +133,7 @@ func (h *handlers) gameplay(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == http.MethodGet {
-		out := map[string]interface{}{"path": path, "exists": false, "content": "",
+		out := map[string]any{"path": path, "exists": false, "content": "",
 			// Every vanilla key with the value DayZ uses when the file
 			// leaves it out: the editor shows and restores these.
 			"defaults": json.RawMessage(guide.GameplayDefaults)}
@@ -170,7 +170,7 @@ func (h *handlers) gameplay(w http.ResponseWriter, r *http.Request) {
 	// Refuse malformed JSON outright — DayZ silently ignores the whole file
 	// on a single syntax error, which is exactly the failure mode this editor
 	// exists to prevent.
-	var probe interface{}
+	var probe any
 	if err := json.Unmarshal([]byte(req.Content), &probe); err != nil {
 		http.Error(w, "invalid JSON: "+err.Error(), http.StatusBadRequest)
 		return
@@ -198,7 +198,7 @@ func (h *handlers) gameplay(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	writeJSON(w, map[string]interface{}{"status": "saved", "enabledFlag": flagSet})
+	writeJSON(w, map[string]any{"status": "saved", "enabledFlag": flagSet})
 }
 
 // ---------------------------------------------------------------------------
@@ -279,5 +279,5 @@ func (h *handlers) metricsHistory(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	h.metrics.mu.Unlock()
-	writeJSON(w, map[string]interface{}{"samples": out, "stepSeconds": int(histStep.Seconds())})
+	writeJSON(w, map[string]any{"samples": out, "stepSeconds": int(histStep.Seconds())})
 }

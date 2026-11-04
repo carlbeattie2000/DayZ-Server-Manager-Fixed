@@ -43,7 +43,7 @@ func (h *handlers) weatherGet(w http.ResponseWriter, r *http.Request) {
 	path := filepath.Join(dztypes.MissionDir(h.app.ServerDir, mission), "cfgweather.xml")
 	params, perr := weather.Parse(path)
 
-	resp := map[string]interface{}{
+	resp := map[string]any{
 		"params":  params,
 		"presets": weather.Presets(),
 		"matched": weather.MatchPreset(params),
@@ -59,7 +59,7 @@ func (h *handlers) weatherGet(w http.ResponseWriter, r *http.Request) {
 			}
 			return def
 		}
-		resp["time"] = map[string]interface{}{
+		resp["time"] = map[string]any{
 			"serverTimeAcceleration":      get("serverTimeAcceleration", "1"),
 			"serverNightTimeAcceleration": get("serverNightTimeAcceleration", "1"),
 			"serverTime":                  get("serverTime", "SystemTime"),
@@ -106,7 +106,7 @@ func (h *handlers) weatherPreset(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "ok", "params": p, "matched": name})
+	writeJSON(w, map[string]any{"status": "ok", "params": p, "matched": name})
 }
 
 func (h *handlers) weatherCustom(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +128,7 @@ func (h *handlers) weatherCustom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "ok", "params": p, "matched": weather.MatchPreset(p)})
+	writeJSON(w, map[string]any{"status": "ok", "params": p, "matched": weather.MatchPreset(p)})
 }
 
 func (h *handlers) writeWeather(p weather.Params) error {
@@ -193,7 +193,7 @@ func (h *handlers) weatherTime(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "ok"})
+	writeJSON(w, map[string]any{"status": "ok"})
 }
 
 // ---------------------------------------------------------------------------
@@ -244,7 +244,7 @@ func (h *handlers) wipePreview(w http.ResponseWriter, r *http.Request) {
 			instanceID = v
 		}
 	}
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"mission":       mission,
 		"folders":       folders,
 		"totalBytes":    total,
@@ -268,7 +268,7 @@ func (h *handlers) wipeApply(w http.ResponseWriter, r *http.Request) {
 	missionDir := dztypes.MissionDir(h.app.ServerDir, mission)
 	targets := h.wipeStorageFolders(missionDir)
 	if len(targets) == 0 {
-		writeJSON(w, map[string]interface{}{"wiped": 0, "message": "no persistence to wipe"})
+		writeJSON(w, map[string]any{"wiped": 0, "message": "no persistence to wipe"})
 		return
 	}
 
@@ -290,7 +290,7 @@ func (h *handlers) wipeApply(w http.ResponseWriter, r *http.Request) {
 	}
 	h.app.Log.Printf("server wipe: moved %d storage folder(s) to %s", len(moved), backupDir)
 	h.app.Notify("wipe", strings.Join(moved, ", "))
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"wiped":     len(moved),
 		"folders":   moved,
 		"backupDir": backupDir,
@@ -316,7 +316,7 @@ func (h *handlers) networkAddresses(w http.ResponseWriter, r *http.Request) {
 		urls = append(urls, fmt.Sprintf("http://%s:%s/", ip, port))
 	}
 	exposure := h.app.Cfg().Exposure
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"exposure":   exposure,
 		"port":       port,
 		"addresses":  ips,

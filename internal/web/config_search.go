@@ -33,7 +33,7 @@ const (
 func (h *handlers) configSearch(w http.ResponseWriter, r *http.Request) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
 	if len(q) < 2 {
-		writeJSON(w, map[string]interface{}{"query": q, "matches": []searchMatch{}, "total": 0, "tooShort": true})
+		writeJSON(w, map[string]any{"query": q, "matches": []searchMatch{}, "total": 0, "tooShort": true})
 		return
 	}
 	needle := strings.ToLower(q)
@@ -85,7 +85,7 @@ func (h *handlers) configSearch(w http.ResponseWriter, r *http.Request) {
 		f.Close()
 	}
 
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"query":     q,
 		"matches":   matches,
 		"total":     total,

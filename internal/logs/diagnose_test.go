@@ -4,6 +4,7 @@ package logs
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -31,12 +32,7 @@ func codes(fs []Finding) []string {
 }
 
 func has(list []string, want string) bool {
-	for _, s := range list {
-		if s == want {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(list, want)
 }
 
 func TestDiagnoseFindsMissingMod(t *testing.T) {
@@ -92,7 +88,7 @@ func TestDiagnoseIsQuietOnAHealthyLog(t *testing.T) {
 
 func TestDiagnoseDeduplicates(t *testing.T) {
 	var b strings.Builder
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		b.WriteString(`Warning Message: Cannot open file 'X:\srv\@Expansion\addons\core.pbo'` + "\n")
 	}
 	sd, pd := withRPT(t, b.String())

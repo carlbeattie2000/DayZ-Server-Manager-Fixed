@@ -69,7 +69,7 @@ func (h *handlers) itemsCatalog(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"items": cat.Items, "survivors": cat.Survivors, "pbos": cat.PBOs, "mods": cat.Mods,
 		"built": cat.Built, "fromTypes": extra, "slots": items.PlayerSlots,
 	})
@@ -90,7 +90,7 @@ func (h *handlers) itemsDetail(w http.ResponseWriter, r *http.Request) {
 	}
 	det, ok := data.Detail(r.URL.Query().Get("class"), lang)
 	if !ok {
-		writeJSON(w, map[string]interface{}{"c": r.URL.Query().Get("class"), "attach": []interface{}{}, "unknown": true})
+		writeJSON(w, map[string]any{"c": r.URL.Query().Get("class"), "attach": []any{}, "unknown": true})
 		return
 	}
 	writeJSON(w, det)

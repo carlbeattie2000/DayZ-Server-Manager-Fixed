@@ -11,7 +11,7 @@ var logf atomic.Value // func(string, ...interface{})
 
 // SetLogf sets where the RCon client reports a recovered panic (the manager's
 // log); the standard logger until then.
-func SetLogf(f func(string, ...interface{})) { logf.Store(f) }
+func SetLogf(f func(string, ...any)) { logf.Store(f) }
 
 // guard recovers a panic on one of the client's background goroutines — a
 // malformed packet must cost the connection, not the whole manager — and then
@@ -22,7 +22,7 @@ func guard(name string, onPanic func()) {
 		return
 	}
 	msg := "BUG: rcon %s panicked: %v\n%s"
-	if f, ok := logf.Load().(func(string, ...interface{})); ok && f != nil {
+	if f, ok := logf.Load().(func(string, ...any)); ok && f != nil {
 		f(msg, name, r, debug.Stack())
 	} else {
 		log.Printf(msg, name, r, debug.Stack())

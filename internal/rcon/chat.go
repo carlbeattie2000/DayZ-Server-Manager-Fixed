@@ -19,6 +19,7 @@ package rcon
 
 import (
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 )
@@ -163,8 +164,8 @@ func (m *Manager) forgetEcho(text string) {
 	text = strings.TrimSpace(text)
 	m.chatMu.Lock()
 	defer m.chatMu.Unlock()
-	for i := len(m.sentEcho) - 1; i >= 0; i-- {
-		if e := m.sentEcho[i]; e.pending && e.text == text {
+	for i, e := range slices.Backward(m.sentEcho) {
+		if e.pending && e.text == text {
 			m.sentEcho = append(m.sentEcho[:i], m.sentEcho[i+1:]...)
 			return
 		}

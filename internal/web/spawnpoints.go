@@ -40,7 +40,7 @@ func (h *handlers) spawnPoints(w http.ResponseWriter, r *http.Request) {
 	if !exists {
 		doc = &dztypes.PlayerSpawnDoc{}
 	}
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"map":    h.currentMap(),
 		"path":   path,
 		"exists": exists,
@@ -74,5 +74,5 @@ func (h *handlers) spawnPointsSave(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	groups := len(doc.Fresh.Groups) + len(doc.Hop.Groups) + len(doc.Travel.Groups)
-	writeJSON(w, map[string]interface{}{"status": "saved", "groups": groups})
+	writeJSON(w, map[string]any{"status": "saved", "groups": groups})
 }

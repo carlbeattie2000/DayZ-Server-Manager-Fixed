@@ -162,7 +162,7 @@ func (a *chatArchive) run(ctx context.Context) {
 	}
 }
 
-func (a *chatArchive) logf(format string, args ...interface{}) {
+func (a *chatArchive) logf(format string, args ...any) {
 	if a.log != nil {
 		a.log.Printf(format, args...)
 	}
@@ -311,7 +311,7 @@ func (h *handlers) registerChat(mux *http.ServeMux) {
 }
 
 func (h *handlers) chatDays(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, map[string]interface{}{"days": h.chat.days(), "keepDays": h.app.Cfg().ChatKeepDays})
+	writeJSON(w, map[string]any{"days": h.chat.days(), "keepDays": h.app.Cfg().ChatKeepDays})
 }
 
 func (h *handlers) chatArchiveDay(w http.ResponseWriter, r *http.Request) {
@@ -341,7 +341,7 @@ func (h *handlers) chatArchiveDay(w http.ResponseWriter, r *http.Request) {
 	if len(out) > limit {
 		out, truncated = out[len(out)-limit:], true
 	}
-	writeJSON(w, map[string]interface{}{"date": day, "messages": out, "total": len(msgs), "truncated": truncated})
+	writeJSON(w, map[string]any{"date": day, "messages": out, "total": len(msgs), "truncated": truncated})
 }
 
 // chatExport downloads one day as plain text, one line per message.

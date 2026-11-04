@@ -39,7 +39,7 @@ func TestApplyAccessMovesTheListener(t *testing.T) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, DisableKeepAlives: true}}
 	get := func(scheme string) error {
 		var err error
-		for try := 0; try < 20; try++ {
+		for range 20 {
 			var resp *http.Response
 			if resp, err = client.Get(fmt.Sprintf("%s://127.0.0.1:%d/api/secret", scheme, port)); err == nil {
 				body, _ := io.ReadAll(resp.Body)
@@ -95,7 +95,7 @@ func TestApplyAccessMovesTheListener(t *testing.T) {
 	go func() {
 		defer close(done)
 		var mu sync.Mutex
-		for i := 0; i < 6; i++ {
+		for i := range 6 {
 			mu.Lock()
 			if i%2 == 0 {
 				s.app.Config.Exposure = "lan"

@@ -160,7 +160,7 @@ func TestImportMissionFolderUpload(t *testing.T) {
 	if rec.Code != 200 {
 		t.Fatalf("status %d: %s", rec.Code, rec.Body.String())
 	}
-	var out map[string]interface{}
+	var out map[string]any
 	_ = json.Unmarshal(rec.Body.Bytes(), &out)
 	if out["name"] != "regular.namalsk" {
 		t.Fatalf("response %v", out)

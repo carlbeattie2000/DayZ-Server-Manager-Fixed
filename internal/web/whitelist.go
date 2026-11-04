@@ -66,7 +66,7 @@ func (h *handlers) whitelistList(w http.ResponseWriter, r *http.Request) {
 		e.Example = strings.Contains(strings.ToLower(b.Comment), "example") || strings.HasPrefix(b.ID, "111111111111")
 		out = append(out, e)
 	}
-	writeJSON(w, map[string]interface{}{"enabled": h.whitelistEnabled(), "entries": out, "running": h.app.ServerIsRunning()})
+	writeJSON(w, map[string]any{"enabled": h.whitelistEnabled(), "entries": out, "running": h.app.ServerIsRunning()})
 }
 
 func (h *handlers) whitelistAdd(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +115,7 @@ func (h *handlers) whitelistAdd(w http.ResponseWriter, r *http.Request) {
 	if added {
 		h.app.Log.Printf("whitelist: added %s (%s)", nonEmpty(name, id), nonEmpty(h.actor(r), "panel"))
 	}
-	writeJSON(w, map[string]interface{}{"ok": true, "added": added, "id": id})
+	writeJSON(w, map[string]any{"ok": true, "added": added, "id": id})
 }
 
 func (h *handlers) whitelistRemove(w http.ResponseWriter, r *http.Request) {
@@ -139,7 +139,7 @@ func (h *handlers) whitelistRemove(w http.ResponseWriter, r *http.Request) {
 	if removed {
 		h.app.Log.Printf("whitelist: removed %s (%s)", req.ID, nonEmpty(h.actor(r), "panel"))
 	}
-	writeJSON(w, map[string]interface{}{"ok": true, "removed": removed})
+	writeJSON(w, map[string]any{"ok": true, "removed": removed})
 }
 
 // whitelistEnable switches enableWhitelist in serverDZ.cfg (read at the next
@@ -172,5 +172,5 @@ func (h *handlers) whitelistEnable(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"ok": true, "enabled": req.On, "restartNeeded": h.app.ServerIsRunning()})
+	writeJSON(w, map[string]any{"ok": true, "enabled": req.On, "restartNeeded": h.app.ServerIsRunning()})
 }

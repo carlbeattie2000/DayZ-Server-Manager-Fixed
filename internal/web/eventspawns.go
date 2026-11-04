@@ -99,7 +99,7 @@ func (h *handlers) eventSpawnsList(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"map":         h.currentMap(),
 		"path":        path,
 		"events":      events,
@@ -220,5 +220,5 @@ func (h *handlers) eventSpawnsSave(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"name": req.Name, "count": count})
+	writeJSON(w, map[string]any{"name": req.Name, "count": count})
 }

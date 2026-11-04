@@ -35,7 +35,7 @@ func TestLenientJSON(t *testing.T) {
   "b": {"c": true,},
 }`
 	fixed := lenientJSON([]byte(src))
-	var v map[string]interface{}
+	var v map[string]any
 	if err := json.Unmarshal(fixed, &v); err != nil {
 		t.Fatalf("still invalid: %v\n%s", err, fixed)
 	}

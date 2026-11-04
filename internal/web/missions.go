@@ -166,7 +166,7 @@ func (h *handlers) missionsFull(w http.ResponseWriter, r *http.Request) {
 		out = append(out, row)
 	}
 	sort.Slice(out, func(i, j int) bool { return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name) })
-	writeJSON(w, map[string]interface{}{"missions": out, "active": active, "dir": h.mpmissionsDir()})
+	writeJSON(w, map[string]any{"missions": out, "active": active, "dir": h.mpmissionsDir()})
 }
 
 type availableMission struct {
@@ -220,7 +220,7 @@ func (h *handlers) missionsAvailable(w http.ResponseWriter, r *http.Request) {
 	if out == nil {
 		out = []availableMission{}
 	}
-	writeJSON(w, map[string]interface{}{"missions": out})
+	writeJSON(w, map[string]any{"missions": out})
 }
 
 // resolveModMission maps (mod, rel path[, archive inner folder]) to a mission
@@ -367,7 +367,7 @@ func (h *handlers) missionsInstall(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	writeJSON(w, map[string]interface{}{"status": "installed", "name": name, "activated": req.Activate})
+	writeJSON(w, map[string]any{"status": "installed", "name": name, "activated": req.Activate})
 }
 
 const maxMissionZip = 512 << 20 // 512 MB — missions with big mapgroup files are ~50 MB
@@ -451,7 +451,7 @@ func (h *handlers) missionsImport(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	writeJSON(w, map[string]interface{}{"status": "installed", "name": name, "activated": activated})
+	writeJSON(w, map[string]any{"status": "installed", "name": name, "activated": activated})
 }
 
 // unzipSafe extracts zipPath into dst, refusing entries that would escape it.
@@ -565,7 +565,7 @@ func (h *handlers) missionsDelete(w http.ResponseWriter, r *http.Request) {
 	origins := h.loadMissionOrigins()
 	delete(origins, name)
 	h.saveMissionOrigins(origins)
-	writeJSON(w, map[string]interface{}{"status": "deleted", "trash": dst, "entry": filepath.Base(dst)})
+	writeJSON(w, map[string]any{"status": "deleted", "trash": dst, "entry": filepath.Base(dst)})
 }
 
 // trashStampRe splits a trash folder name into the mission name and the
@@ -629,7 +629,7 @@ func (h *handlers) missionsTrash(w http.ResponseWriter, r *http.Request) {
 		}
 		return out[i].Entry < out[j].Entry
 	})
-	writeJSON(w, map[string]interface{}{"missions": out, "dir": h.missionTrashDir()})
+	writeJSON(w, map[string]any{"missions": out, "dir": h.missionTrashDir()})
 }
 
 // missionsRestore moves a deleted mission from the trash back into
@@ -675,7 +675,7 @@ func (h *handlers) missionsRestore(w http.ResponseWriter, r *http.Request) {
 		}
 		_ = os.RemoveAll(src)
 	}
-	writeJSON(w, map[string]interface{}{"status": "restored", "name": name})
+	writeJSON(w, map[string]any{"status": "restored", "name": name})
 }
 
 // missionsTrashDelete removes a deleted mission for good.
@@ -696,7 +696,7 @@ func (h *handlers) missionsTrashDelete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "deleted"})
+	writeJSON(w, map[string]any{"status": "deleted"})
 }
 
 func (h *handlers) missionsActivate(w http.ResponseWriter, r *http.Request) {
@@ -725,7 +725,7 @@ func (h *handlers) missionsActivate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "activated", "name": name})
+	writeJSON(w, map[string]any{"status": "activated", "name": name})
 }
 
 // missionsLinked lists installed missions that came from (or ship inside) a
@@ -756,5 +756,5 @@ func (h *handlers) missionsLinked(w http.ResponseWriter, r *http.Request) {
 		out = append(out, linked{Name: n, Active: strings.EqualFold(n, active)})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
-	writeJSON(w, map[string]interface{}{"missions": out})
+	writeJSON(w, map[string]any{"missions": out})
 }

@@ -15,13 +15,13 @@ import (
 // without an entry gets one in cfgspawnabletypes.xml.
 func TestSpawnableEntryReadAndSave(t *testing.T) {
 	h, _, m := vehicleFixture(t)
-	get := func(name string) map[string]interface{} {
+	get := func(name string) map[string]any {
 		rec := httptest.NewRecorder()
 		h.spawnableEntry(rec, httptest.NewRequest("GET", "/api/spawnable/entry?name="+name, nil))
 		if rec.Code != 200 {
 			t.Fatalf("GET %s: %d %s", name, rec.Code, rec.Body.String())
 		}
-		var out map[string]interface{}
+		var out map[string]any
 		_ = json.Unmarshal(rec.Body.Bytes(), &out)
 		return out
 	}

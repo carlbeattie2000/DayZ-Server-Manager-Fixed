@@ -53,10 +53,10 @@ func (h *handlers) globalsGet(w http.ResponseWriter, r *http.Request) {
 	}
 	doc, err := dztypes.LoadGlobals(path)
 	if err != nil {
-		writeJSON(w, map[string]interface{}{"path": path, "exists": false, "vars": []dztypes.GlobalVar{}})
+		writeJSON(w, map[string]any{"path": path, "exists": false, "vars": []dztypes.GlobalVar{}})
 		return
 	}
-	writeJSON(w, map[string]interface{}{"path": path, "exists": true, "vars": doc.Vars})
+	writeJSON(w, map[string]any{"path": path, "exists": true, "vars": doc.Vars})
 }
 
 func (h *handlers) globalsSave(w http.ResponseWriter, r *http.Request) {
@@ -113,5 +113,5 @@ func (h *handlers) globalsSave(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	writeJSON(w, map[string]interface{}{"applied": applied})
+	writeJSON(w, map[string]any{"applied": applied})
 }

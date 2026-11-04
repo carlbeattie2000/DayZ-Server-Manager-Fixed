@@ -8,6 +8,7 @@ package web
 
 import (
 	"encoding/json"
+	"maps"
 	"net"
 	"net/http"
 	"net/url"
@@ -43,11 +44,9 @@ func (h *handlers) registerAuth(mux *http.ServeMux) {
 }
 
 // authError answers with an i18n key the page translates.
-func authError(w http.ResponseWriter, code int, key string, extra map[string]interface{}) {
-	body := map[string]interface{}{"error": key}
-	for k, v := range extra {
-		body[k] = v
-	}
+func authError(w http.ResponseWriter, code int, key string, extra map[string]any) {
+	body := map[string]any{"error": key}
+	maps.Copy(body, extra)
 	data, _ := json.Marshal(body)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
@@ -57,7 +56,7 @@ func authError(w http.ResponseWriter, code int, key string, extra map[string]int
 func (h *handlers) authStatus(w http.ResponseWriter, r *http.Request) {
 	cfg := h.auth.snapshot()
 	s := h.auth.sessionFor(r)
-	out := map[string]interface{}{"enabled": cfg.Enabled, "authenticated": !cfg.Enabled || s != nil}
+	out := map[string]any{"enabled": cfg.Enabled, "authenticated": !cfg.Enabled || s != nil}
 	if s != nil {
 		out["user"] = s.User
 	}
@@ -88,14 +87,14 @@ func (h *handlers) checkPassword(w http.ResponseWriter, r *http.Request, user, p
 	case <-r.Context().Done():
 		return false
 	case <-time.After(10 * time.Second):
-		authError(w, http.StatusTooManyRequests, "auth.err.locked", map[string]interface{}{"retryAfter": 10})
+		authError(w, http.StatusTooManyRequests, "auth.err.locked", map[string]any{"retryAfter": 10})
 		return false
 	}
 	// Checked after taking a slot, so the failures of the attempts that ran
 	// before this one are already counted.
 	now := time.Now()
 	if ok, wait := h.auth.allowAttempt(ip, now); !ok {
-		authError(w, http.StatusTooManyRequests, "auth.err.locked", map[string]interface{}{"retryAfter": int(wait.Seconds()) + 1})
+		authError(w, http.StatusTooManyRequests, "auth.err.locked", map[string]any{"retryAfter": int(wait.Seconds()) + 1})
 		return false
 	}
 	cfg := h.auth.snapshot()
@@ -127,7 +126,7 @@ func (h *handlers) authLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !h.auth.enabled() {
-		writeJSON(w, map[string]interface{}{"ok": true})
+		writeJSON(w, map[string]any{"ok": true})
 		return
 	}
 	if !h.checkPassword(w, r, req.User, req.Password, true) {
@@ -139,7 +138,7 @@ func (h *handlers) authLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.app.Log.Printf("panel login: %s from %s", user, clientIP(r))
-	writeJSON(w, map[string]interface{}{"ok": true, "user": user})
+	writeJSON(w, map[string]any{"ok": true, "user": user})
 }
 
 func (h *handlers) authLogout(w http.ResponseWriter, r *http.Request) {
@@ -154,7 +153,7 @@ func (h *handlers) authLogout(w http.ResponseWriter, r *http.Request) {
 		h.auth.mu.Unlock()
 	}
 	h.auth.clearCookie(w, r)
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 // authLocal trades the one-time token the manager put into the URL it opened
@@ -173,7 +172,7 @@ func (h *handlers) authLocal(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"ok": true, "user": user})
+	writeJSON(w, map[string]any{"ok": true, "user": user})
 }
 
 type sessionView struct {
@@ -202,7 +201,7 @@ func (h *handlers) authSettings(w http.ResponseWriter, r *http.Request) {
 	}
 	h.auth.mu.Unlock()
 	sort.Slice(list, func(i, j int) bool { return list[i].LastSeen > list[j].LastSeen })
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"enabled":       cfg.Enabled,
 		"user":          cfg.User,
 		"trustLocalApp": cfg.TrustLocalApp,
@@ -261,7 +260,7 @@ func (h *handlers) authSetup(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 func (h *handlers) authChange(w http.ResponseWriter, r *http.Request) {
@@ -299,7 +298,7 @@ func (h *handlers) authChange(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 func (h *handlers) authDisable(w http.ResponseWriter, r *http.Request) {
@@ -311,7 +310,7 @@ func (h *handlers) authDisable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !h.auth.enabled() {
-		writeJSON(w, map[string]interface{}{"ok": true})
+		writeJSON(w, map[string]any{"ok": true})
 		return
 	}
 	if h.app.Cfg().Exposure == "internet" {
@@ -338,7 +337,7 @@ func (h *handlers) authDisable(w http.ResponseWriter, r *http.Request) {
 	}
 	h.auth.clearCookie(w, r)
 	h.app.Log.Printf("panel login disabled")
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 func (h *handlers) authTrust(w http.ResponseWriter, r *http.Request) {
@@ -357,7 +356,7 @@ func (h *handlers) authTrust(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"ok": true})
+	writeJSON(w, map[string]any{"ok": true})
 }
 
 // authRevoke signs out one device (by the id prefix /api/auth/settings shows)
@@ -388,7 +387,7 @@ func (h *handlers) authRevoke(w http.ResponseWriter, r *http.Request) {
 		_ = h.auth.flushLocked()
 	}
 	h.auth.mu.Unlock()
-	writeJSON(w, map[string]interface{}{"ok": true, "revoked": n})
+	writeJSON(w, map[string]any{"ok": true, "revoked": n})
 }
 
 // ---------------------------------------------------------------- the guard
@@ -610,7 +609,7 @@ func (s *Server) guard(next http.Handler) http.Handler {
 			return
 		}
 		if authOn && strings.HasPrefix(r.URL.Path, "/api/") && !publicAPI(r) && s.h.auth.sessionFor(r) == nil {
-			authError(w, http.StatusUnauthorized, "auth.required", map[string]interface{}{"auth": true})
+			authError(w, http.StatusUnauthorized, "auth.required", map[string]any{"auth": true})
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -638,7 +637,7 @@ var guardMessages = map[string][2]string{
 func writeBlocked(w http.ResponseWriter, r *http.Request, code int, key string) {
 	msg := guardMessages[key]
 	if strings.HasPrefix(r.URL.Path, "/api/") {
-		authError(w, code, key, map[string]interface{}{"message": msg[0]})
+		authError(w, code, key, map[string]any{"message": msg[0]})
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

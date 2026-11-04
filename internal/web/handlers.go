@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -65,7 +66,7 @@ type handlers struct {
 	dashMods  struct { // dashboard mod counts, refreshed at most every 15 s
 		mu         sync.Mutex
 		at         time.Time
-		val        map[string]interface{}
+		val        map[string]any
 		refreshing bool
 	}
 }
@@ -317,11 +318,9 @@ func (h *handlers) register(mux *http.ServeMux) {
 // methods rejects any verb not in allowed with 405 before calling handler.
 func methods(h http.HandlerFunc, allowed ...string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		for _, m := range allowed {
-			if r.Method == m {
-				h(w, r)
-				return
-			}
+		if slices.Contains(allowed, r.Method) {
+			h(w, r)
+			return
 		}
 		w.Header().Set("Allow", strings.Join(allowed, ", "))
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -336,13 +335,13 @@ func (h *handlers) info(w http.ResponseWriter, r *http.Request) {
 	authCfg := h.auth.snapshot()
 	sess := h.auth.sessionFor(r)
 	authed := !authCfg.Enabled || sess != nil
-	out := map[string]interface{}{
+	out := map[string]any{
 		"name":    h.app.Name,
 		"version": h.app.Version,
 		"author":  h.app.Author,
 		"mode":    h.app.Mode,
 		"os":      runtime.GOOS,
-		"auth":    map[string]interface{}{"enabled": authCfg.Enabled, "authenticated": authed},
+		"auth":    map[string]any{"enabled": authCfg.Enabled, "authenticated": authed},
 		"local":   isLoopback(r),
 	}
 	if authed || isLoopback(r) {
@@ -363,7 +362,7 @@ func (h *handlers) info(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if sess != nil {
-		out["auth"].(map[string]interface{})["user"] = sess.User
+		out["auth"].(map[string]any)["user"] = sess.User
 	}
 	writeJSON(w, out)
 }
@@ -373,7 +372,7 @@ func (h *handlers) i18nBundle(w http.ResponseWriter, r *http.Request) {
 	if code == "" {
 		code = h.app.Cfg().Language
 	}
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"locale":    code,
 		"dir":       i18n.Dir(code),
 		"supported": i18n.Supported(),
@@ -464,12 +463,12 @@ func (h *handlers) config(w http.ResponseWriter, r *http.Request) {
 }
 
 // withAccessChange adds "accessChange" to a config answer.
-func withAccessChange(cfg interface{}, change AccessChange) interface{} {
+func withAccessChange(cfg any, change AccessChange) any {
 	data, err := json.Marshal(cfg)
 	if err != nil {
 		return cfg
 	}
-	m := map[string]interface{}{}
+	m := map[string]any{}
 	if json.Unmarshal(data, &m) != nil {
 		return cfg
 	}
@@ -684,8 +683,8 @@ func (h *handlers) finishFirstRun(w http.ResponseWriter, r *http.Request) {
 // restart, or the one a running countdown is heading to — and serverTime lets
 // the browser correct for its own clock/timezone, so the panel countdown can
 // never disagree with what players were told in-game.
-func (h *handlers) serverState() map[string]interface{} {
-	out := map[string]interface{}{
+func (h *handlers) serverState() map[string]any {
+	out := map[string]any{
 		"running":   h.app.ServerIsRunning(),
 		"stopping":  h.app.Server.IsStopping(),
 		"pid":       h.app.Server.PID(),
@@ -707,7 +706,7 @@ func (h *handlers) serverState() map[string]interface{} {
 		out["loading"] = !q.OK && q.FirstOK.IsZero() && h.app.Server.Uptime() < 15*time.Minute
 	}
 	if plan := h.app.Server.NextRestart(); plan != nil {
-		out["nextRestart"] = map[string]interface{}{
+		out["nextRestart"] = map[string]any{
 			"at":           plan.At.UnixMilli(),
 			"reason":       plan.Reason,
 			"active":       plan.Active,
@@ -746,7 +745,7 @@ func (h *handlers) serverStop(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < 30 && h.app.Server.IsRunning(); i++ {
 		time.Sleep(100 * time.Millisecond)
 	}
-	writeJSON(w, map[string]interface{}{"status": "stopped", "running": h.app.Server.IsRunning()})
+	writeJSON(w, map[string]any{"status": "stopped", "running": h.app.Server.IsRunning()})
 }
 
 // serverClearCrashLoop resumes auto-restart after crash-loop protection
@@ -775,7 +774,7 @@ func (h *handlers) serverCfg(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		writeJSON(w, map[string]interface{}{
+		writeJSON(w, map[string]any{
 			"path":    cfgPath,
 			"values":  cfg.AsMap(),
 			"mission": cfg.MissionTemplate(),
@@ -787,7 +786,7 @@ func (h *handlers) serverCfg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer unlock()
-	var patch map[string]interface{}
+	var patch map[string]any
 	if err := json.NewDecoder(r.Body).Decode(&patch); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -889,7 +888,7 @@ func (h *handlers) missionsList(w http.ResponseWriter, r *http.Request) {
 		out = append(out, row{Name: e.Name(), Active: strings.EqualFold(e.Name(), active)})
 	}
 	sort.Slice(out, func(i, j int) bool { return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name) })
-	writeJSON(w, map[string]interface{}{"missions": out, "active": active})
+	writeJSON(w, map[string]any{"missions": out, "active": active})
 }
 
 func (h *handlers) missionsDuplicate(w http.ResponseWriter, r *http.Request) {
@@ -977,7 +976,7 @@ func (h *handlers) modsList(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"mods":        list,
 		"activeMods":  h.app.Cfg().Mods,
 		"serverMods":  h.app.Cfg().ServerMods,
@@ -1010,7 +1009,7 @@ func (h *handlers) modsInstall(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "installed", "mod": name, "missions": h.autoInstallModMissions([]string{name}),
+	writeJSON(w, map[string]any{"status": "installed", "mod": name, "missions": h.autoInstallModMissions([]string{name}),
 		"vehicles": h.syncModVehicles([]string{name})})
 }
 
@@ -1037,7 +1036,7 @@ func (h *handlers) modsUninstall(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 	// Its vehicles stop spawning (they stay in the mission, switched off).
-	writeJSON(w, map[string]interface{}{"status": "uninstalled", "mod": name, "vehicles": h.syncModVehicles([]string{name})})
+	writeJSON(w, map[string]any{"status": "uninstalled", "mod": name, "vehicles": h.syncModVehicles([]string{name})})
 }
 
 func (h *handlers) modsUpdate(w http.ResponseWriter, r *http.Request) {
@@ -1060,7 +1059,7 @@ func (h *handlers) modsUpdate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"status": "updated", "mod": name, "missions": h.autoInstallModMissions([]string{name}),
+	writeJSON(w, map[string]any{"status": "updated", "mod": name, "missions": h.autoInstallModMissions([]string{name}),
 		"vehicles": h.syncModVehicles([]string{name})})
 }
 
@@ -1080,7 +1079,7 @@ func (h *handlers) modsUpdateAll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"updated": updated, "count": len(updated), "missions": h.autoInstallModMissions(updated),
+	writeJSON(w, map[string]any{"updated": updated, "count": len(updated), "missions": h.autoInstallModMissions(updated),
 		"vehicles": h.syncModVehicles(updated)})
 }
 
@@ -1155,7 +1154,7 @@ func (h *handlers) modsEnable(w http.ResponseWriter, r *http.Request) {
 	}
 	// Vehicle mods: their cars appear on the Vehicles page with the mod, and
 	// stop spawning when it is switched off.
-	writeJSON(w, map[string]interface{}{"active": h.app.Cfg().Mods, "server": h.app.Cfg().ServerMods,
+	writeJSON(w, map[string]any{"active": h.app.Cfg().Mods, "server": h.app.Cfg().ServerMods,
 		"vehicles": h.syncModVehicles([]string{req.Mod})})
 }
 
@@ -1208,7 +1207,7 @@ func (h *handlers) modsOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"active": h.app.Cfg().Mods, "server": h.app.Cfg().ServerMods})
+	writeJSON(w, map[string]any{"active": h.app.Cfg().Mods, "server": h.app.Cfg().ServerMods})
 }
 
 func (h *handlers) modName(r *http.Request) (string, error) {
@@ -1278,7 +1277,7 @@ func (h *handlers) typesList(w http.ResponseWriter, r *http.Request) {
 		rows = append(rows, r)
 	}
 	sort.Slice(rows, func(i, j int) bool { return strings.ToLower(rows[i].Name) < strings.ToLower(rows[j].Name) })
-	writeJSON(w, map[string]interface{}{"file": path, "types": rows, "count": len(rows)})
+	writeJSON(w, map[string]any{"file": path, "types": rows, "count": len(rows)})
 }
 
 func (h *handlers) typesItem(w http.ResponseWriter, r *http.Request) {
@@ -1332,7 +1331,7 @@ func (h *handlers) typesItem(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		writeJSON(w, map[string]interface{}{"removed": n})
+		writeJSON(w, map[string]any{"removed": n})
 	}
 }
 
@@ -1473,7 +1472,7 @@ func (h *handlers) modedList(w http.ResponseWriter, r *http.Request) {
 		}
 		out = append(out, en)
 	}
-	writeJSON(w, map[string]interface{}{"folder": dir, "files": out})
+	writeJSON(w, map[string]any{"folder": dir, "files": out})
 }
 
 func (h *handlers) modedCreate(w http.ResponseWriter, r *http.Request) {
@@ -1725,7 +1724,7 @@ func (h *handlers) filesTree(w http.ResponseWriter, r *http.Request) {
 		}
 		return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name)
 	})
-	writeJSON(w, map[string]interface{}{"path": rel, "entries": out})
+	writeJSON(w, map[string]any{"path": rel, "entries": out})
 }
 
 // Files above this size would freeze the browser if rendered inline. A
@@ -1764,7 +1763,7 @@ func (h *handlers) filesRead(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"path": rel, "content": string(body)})
+	writeJSON(w, map[string]any{"path": rel, "content": string(body)})
 }
 
 func (h *handlers) filesWrite(w http.ResponseWriter, r *http.Request) {
@@ -1831,7 +1830,7 @@ func (h *handlers) logsRead(w http.ResponseWriter, r *http.Request) {
 	}
 	path := dzlogs.Resolve(h.app.ServerDir, h.app.Cfg().ProfilesDir, id)
 	if path == "" { // e.g. no .RPT written yet — an empty log, not an error
-		writeJSON(w, map[string]interface{}{"path": "", "content": "", "size": 0, "end": 0, "truncated": false, "missing": true})
+		writeJSON(w, map[string]any{"path": "", "content": "", "size": 0, "end": 0, "truncated": false, "missing": true})
 		return
 	}
 	const (
@@ -1850,7 +1849,7 @@ func (h *handlers) logsRead(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open(path)
 	if err != nil {
 		// Not written yet: the viewer says it waits for the file.
-		writeJSON(w, map[string]interface{}{"path": path, "content": "", "size": 0, "end": 0, "truncated": false, "missing": true})
+		writeJSON(w, map[string]any{"path": path, "content": "", "size": 0, "end": 0, "truncated": false, "missing": true})
 		return
 	}
 	defer f.Close()
@@ -1877,7 +1876,7 @@ func (h *handlers) logsRead(w http.ResponseWriter, r *http.Request) {
 			body = body[nl+1:]
 		}
 	}
-	writeJSON(w, map[string]interface{}{
+	writeJSON(w, map[string]any{
 		"path":      path,
 		"content":   string(body),
 		"size":      size,
@@ -2086,7 +2085,7 @@ func (h *handlers) rconPlayers(w http.ResponseWriter, r *http.Request) {
 		rconFail(w, err)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"players": players, "count": len(players)})
+	writeJSON(w, map[string]any{"players": players, "count": len(players)})
 }
 
 // rconErrKey names the common RCon failures with the i18n key the panel shows
@@ -2124,7 +2123,7 @@ func rconFail(w http.ResponseWriter, err error) {
 func (h *handlers) rconStatus(w http.ResponseWriter, r *http.Request) {
 	running := h.app.ServerIsRunning()
 	rc := h.app.RCon
-	out := map[string]interface{}{
+	out := map[string]any{
 		"running":    running,
 		"configured": rc.Configured(),
 		"connected":  rc.IsConnected(),
@@ -2159,7 +2158,7 @@ func (h *handlers) rconChatRecent(w http.ResponseWriter, r *http.Request) {
 	}
 	rc := h.app.RCon
 	rc.TouchConnect()
-	out := map[string]interface{}{
+	out := map[string]any{
 		"messages":   rc.RecentChat(limit),
 		"connected":  rc.IsConnected(),
 		"configured": rc.Configured(),
@@ -2309,7 +2308,7 @@ func (h *handlers) eventsList(w http.ResponseWriter, r *http.Request) {
 		add(f.Rel, d)
 	}
 	sort.SliceStable(out, func(i, j int) bool { return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name) })
-	writeJSON(w, map[string]interface{}{"file": path, "files": files, "events": out, "count": len(out), "problems": problems})
+	writeJSON(w, map[string]any{"file": path, "files": files, "events": out, "count": len(out), "problems": problems})
 }
 
 func (h *handlers) eventsItem(w http.ResponseWriter, r *http.Request) {
@@ -2388,7 +2387,7 @@ func (h *handlers) eventsItem(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "not found", http.StatusNotFound)
 			return
 		}
-		writeJSON(w, map[string]interface{}{"removed": n})
+		writeJSON(w, map[string]any{"removed": n})
 	}
 }
 
@@ -2474,10 +2473,10 @@ func (h *handlers) validate(w http.ResponseWriter, r *http.Request) {
 	if q.Get("peek") == "1" {
 		res, fresh := h.cachedValidation(o)
 		if res == nil {
-			writeJSON(w, map[string]interface{}{"none": true})
+			writeJSON(w, map[string]any{"none": true})
 			return
 		}
-		writeJSON(w, map[string]interface{}{"issues": res.issues, "count": len(res.issues),
+		writeJSON(w, map[string]any{"issues": res.issues, "count": len(res.issues),
 			"checkedAt": res.at.Unix(), "cached": true, "fresh": fresh})
 		return
 	}
@@ -2486,7 +2485,7 @@ func (h *handlers) validate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"issues": res.issues, "count": len(res.issues),
+	writeJSON(w, map[string]any{"issues": res.issues, "count": len(res.issues),
 		"checkedAt": res.at.Unix(), "cached": cached, "fresh": true})
 }
 
@@ -2555,14 +2554,14 @@ func (h *handlers) validateFix(w http.ResponseWriter, r *http.Request) {
 	if fixed == nil {
 		fixed = []validator.Fixed{}
 	}
-	writeJSON(w, map[string]interface{}{"fixed": fixed, "count": len(fixed)})
+	writeJSON(w, map[string]any{"fixed": fixed, "count": len(fixed)})
 }
 
 // ---------------------------------------------------------------------------
 // Steam detection.
 
 func (h *handlers) steamDetect(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, map[string]interface{}{"installs": util.FindDayZInstalls(), "workshop": util.FindWorkshopContent()})
+	writeJSON(w, map[string]any{"installs": util.FindDayZInstalls(), "workshop": util.FindWorkshopContent()})
 }
 
 // ---------------------------------------------------------------------------
@@ -2645,7 +2644,7 @@ func (h *handlers) modsScanTypes(w http.ResponseWriter, r *http.Request) {
 		}
 		return strings.ToLower(hits[i].Rel) < strings.ToLower(hits[j].Rel)
 	})
-	writeJSON(w, map[string]interface{}{"mod": name, "scannedDir": dir, "files": hits})
+	writeJSON(w, map[string]any{"mod": name, "scannedDir": dir, "files": hits})
 }
 
 func (h *handlers) modsInstallTypes(w http.ResponseWriter, r *http.Request) {
@@ -2739,7 +2738,7 @@ func (h *handlers) importPreview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cfgPath := filepath.Join(src, "serverDZ.cfg")
-	preview := map[string]interface{}{"sourceDir": src}
+	preview := map[string]any{"sourceDir": src}
 	if _, err := os.Stat(cfgPath); err == nil {
 		if cfg, err := config.LoadServerCfg(cfgPath); err == nil {
 			preview["cfg"] = cfg.AsMap()
@@ -2779,11 +2778,11 @@ func (h *handlers) importPreview(w http.ResponseWriter, r *http.Request) {
 func (h *handlers) importSource(w http.ResponseWriter, dir string) (string, bool) {
 	src := strings.TrimSpace(dir)
 	if src == "" {
-		authError(w, http.StatusBadRequest, "sync.err.noSource", map[string]interface{}{"message": "sourceDir is required"})
+		authError(w, http.StatusBadRequest, "sync.err.noSource", map[string]any{"message": "sourceDir is required"})
 		return "", false
 	}
 	if st, err := os.Stat(src); err != nil || !st.IsDir() {
-		authError(w, http.StatusBadRequest, "sync.err.notFound", map[string]interface{}{"message": "source directory not found"})
+		authError(w, http.StatusBadRequest, "sync.err.notFound", map[string]any{"message": "source directory not found"})
 		return "", false
 	}
 	// Refuse to import from the very folder we're running in — it would loop
@@ -2791,7 +2790,7 @@ func (h *handlers) importSource(w http.ResponseWriter, dir string) (string, bool
 	absSrc, _ := filepath.Abs(src)
 	absDst, _ := filepath.Abs(h.app.ServerDir)
 	if strings.EqualFold(absSrc, absDst) {
-		authError(w, http.StatusBadRequest, "sync.err.same", map[string]interface{}{"message": "source and destination are the same directory"})
+		authError(w, http.StatusBadRequest, "sync.err.same", map[string]any{"message": "source and destination are the same directory"})
 		return "", false
 	}
 	return src, true
@@ -2929,7 +2928,7 @@ func (h *handlers) importApply(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"copiedMods": copied, "failedMods": failed,
+	writeJSON(w, map[string]any{"copiedMods": copied, "failedMods": failed,
 		"mission": mission, "copiedMission": copiedMission, "missionError": missionErr})
 }
 
@@ -2967,7 +2966,7 @@ func (h *handlers) backupsList(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Time > out[j].Time })
-	writeJSON(w, map[string]interface{}{"path": rel, "backups": out})
+	writeJSON(w, map[string]any{"path": rel, "backups": out})
 }
 
 func (h *handlers) backupsRestore(w http.ResponseWriter, r *http.Request) {
@@ -3070,7 +3069,7 @@ func (h *handlers) profilesTree(w http.ResponseWriter, r *http.Request) {
 		// Empty profiles dir isn't an error — the server just hasn't been
 		// started yet, so return an empty list so the UI can render a hint.
 		if os.IsNotExist(err) {
-			writeJSON(w, map[string]interface{}{"path": rel, "entries": []interface{}{}})
+			writeJSON(w, map[string]any{"path": rel, "entries": []any{}})
 			return
 		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -3101,7 +3100,7 @@ func (h *handlers) profilesTree(w http.ResponseWriter, r *http.Request) {
 		}
 		return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name)
 	})
-	writeJSON(w, map[string]interface{}{"path": rel, "entries": out})
+	writeJSON(w, map[string]any{"path": rel, "entries": out})
 }
 
 func (h *handlers) profilesRead(w http.ResponseWriter, r *http.Request) {
@@ -3116,7 +3115,7 @@ func (h *handlers) profilesRead(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"path": rel, "content": string(body)})
+	writeJSON(w, map[string]any{"path": rel, "content": string(body)})
 }
 
 func (h *handlers) profilesWrite(w http.ResponseWriter, r *http.Request) {
@@ -3213,13 +3212,13 @@ func (h *handlers) acquireWrite(w http.ResponseWriter) (func(), bool) {
 	if h.app.ServerIsRunning() {
 		h.app.WriteMu.Unlock()
 		// An i18n key, so the page says it in the panel's language.
-		authError(w, http.StatusConflict, "guard.serverRunning", map[string]interface{}{"message": "server is running — stop it before editing files"})
+		authError(w, http.StatusConflict, "guard.serverRunning", map[string]any{"message": "server is running — stop it before editing files"})
 		return nil, false
 	}
 	return h.app.WriteMu.Unlock, true
 }
 
-func writeJSON(w http.ResponseWriter, v interface{}) {
+func writeJSON(w http.ResponseWriter, v any) {
 	// Encode fully before writing: a value that cannot be encoded (an
 	// out-of-range time, a NaN) used to produce a 200 with an EMPTY body, which
 	// the page could only report as "Unexpected end of JSON input".
@@ -3256,12 +3255,7 @@ func sizeOrZero(info os.FileInfo) int64 {
 }
 
 func contains(s []string, v string) bool {
-	for _, x := range s {
-		if x == v {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(s, v)
 }
 
 func removeOnce(s []string, v string) []string {

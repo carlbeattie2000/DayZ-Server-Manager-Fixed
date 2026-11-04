@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -273,12 +274,7 @@ func (m *Manager) connect() (*Conn, error) {
 }
 
 func contains(list []string, v string) bool {
-	for _, s := range list {
-		if s == v {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(list, v)
 }
 
 // Configured reports whether host/port/password are set (RCon can be attempted).

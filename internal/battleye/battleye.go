@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -25,12 +26,7 @@ var Known = []string{"bans.txt"}
 var ErrNotEditable = errors.New("not an editable battleye file")
 
 func isKnown(lower string) bool {
-	for _, k := range Known {
-		if k == lower {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(Known, lower)
 }
 
 // isSettings reports BattlEye's settings file in any of its spellings

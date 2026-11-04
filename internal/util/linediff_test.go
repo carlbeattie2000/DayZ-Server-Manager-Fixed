@@ -53,7 +53,7 @@ func TestDiffLinesAdditionAndRemoval(t *testing.T) {
 // must diff instantly, not quadratically.
 func TestDiffLinesHandlesALargeFileWithASmallEdit(t *testing.T) {
 	var a, b strings.Builder
-	for i := 0; i < 30000; i++ {
+	for i := range 30000 {
 		line := fmt.Sprintf("        <nominal>%d</nominal>\n", i)
 		a.WriteString(line)
 		if i == 15000 {
@@ -77,7 +77,7 @@ func TestDiffLinesHandlesALargeFileWithASmallEdit(t *testing.T) {
 // A rewrite of a huge file must degrade to counts rather than hang.
 func TestDiffLinesTruncatesAnEnormousChange(t *testing.T) {
 	var a, b strings.Builder
-	for i := 0; i < 6000; i++ {
+	for i := range 6000 {
 		fmt.Fprintf(&a, "old %d\n", i)
 		fmt.Fprintf(&b, "new %d\n", i)
 	}

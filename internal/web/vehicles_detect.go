@@ -297,7 +297,7 @@ func guessParts(variant, family string, byName map[string]cfgClass) []string {
 			switch s := owner.Values["inventoryslot"].(type) {
 			case string:
 				fits = []string{s}
-			case []interface{}:
+			case []any:
 				fits = owner.Strings("inventoryslot")
 			}
 		}
@@ -548,7 +548,7 @@ func (h *handlers) vehiclesSetup(w http.ResponseWriter, r *http.Request) {
 	saveVehicleSources(missionDir, src)
 	h.app.Log.Printf("vehicle %s from %s set up as %s (model %s): %d variant(s), %d spot(s), %d part list(s)",
 		fam.Family, req.Mod, evName, modelEv.Name, len(fam.Variants), spots, len(partBlocks))
-	writeJSON(w, map[string]interface{}{"event": evName, "variants": len(fam.Variants), "spots": spots,
+	writeJSON(w, map[string]any{"event": evName, "variants": len(fam.Variants), "spots": spots,
 		"types": len(typeBlocks), "parts": len(partBlocks)})
 }
 
@@ -560,10 +560,7 @@ func buildVehicleEvent(model, modelName, name string, nominal int, variants []st
 		re := regexp.MustCompile(`<` + tag + `>\s*-?\d+\s*</` + tag + `>`)
 		b = re.ReplaceAllString(b, fmt.Sprintf("<%s>%d</%s>", tag, v, tag))
 	}
-	min := nominal / 2
-	if min < 1 {
-		min = 1
-	}
+	min := max(nominal/2, 1)
 	set("nominal", nominal)
 	set("min", min)
 	set("max", nominal)

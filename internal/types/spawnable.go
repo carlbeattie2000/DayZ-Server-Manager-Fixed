@@ -35,6 +35,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -299,8 +300,8 @@ func DeleteSpawnableType(path, name string) (int, error) {
 		return 0, nil
 	}
 	// Splice back to front so earlier indices stay valid.
-	for i := len(locs) - 1; i >= 0; i-- {
-		src = src[:locs[i][0]] + src[locs[i][1]:]
+	for _, loc := range slices.Backward(locs) {
+		src = src[:loc[0]] + src[loc[1]:]
 	}
 	return len(locs), writeAtomic(path, []byte(src))
 }

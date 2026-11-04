@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"time"
@@ -454,15 +455,11 @@ func (m Manager) Clone() Manager {
 	}
 	if m.MapSizes != nil {
 		c.MapSizes = make(map[string]int, len(m.MapSizes))
-		for k, v := range m.MapSizes {
-			c.MapSizes[k] = v
-		}
+		maps.Copy(c.MapSizes, m.MapSizes)
 	}
 	if m.DiscordEvents != nil {
 		c.DiscordEvents = make(map[string]bool, len(m.DiscordEvents))
-		for k, v := range m.DiscordEvents {
-			c.DiscordEvents[k] = v
-		}
+		maps.Copy(c.DiscordEvents, m.DiscordEvents)
 	}
 	return c
 }

@@ -100,7 +100,7 @@ func writePBO(t *testing.T, path string, files map[string][]byte, order []string
 	u32 := func(b *bytes.Buffer, v uint32) { _ = binary.Write(b, binary.LittleEndian, v) }
 	hdr.WriteByte(0)
 	u32(&hdr, 0x56657273)
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		u32(&hdr, 0)
 	}
 	hdr.WriteString("prefix\x00mymod\\cars\x00\x00")
@@ -115,7 +115,7 @@ func writePBO(t *testing.T, path string, files map[string][]byte, order []string
 		data.Write(files[name])
 	}
 	hdr.WriteByte(0)
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		u32(&hdr, 0)
 	}
 	out := append(hdr.Bytes(), data.Bytes()...)

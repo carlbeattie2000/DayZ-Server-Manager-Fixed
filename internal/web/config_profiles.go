@@ -84,7 +84,7 @@ func (h *handlers) cfgProfilesList(w http.ResponseWriter, r *http.Request) {
 		out = append(out, p)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Created > out[j].Created })
-	writeJSON(w, map[string]interface{}{"profiles": out})
+	writeJSON(w, map[string]any{"profiles": out})
 }
 
 // readProfileMeta opens a profile zip and reads its manifest for display.
@@ -258,7 +258,7 @@ func (h *handlers) writeProfileZip(w io.Writer, name, note string) error {
 		f.Close()
 		files++
 	}
-	manifest := map[string]interface{}{
+	manifest := map[string]any{
 		"app":     h.app.Name,
 		"version": h.app.Version,
 		"profile": true,
@@ -297,7 +297,7 @@ func (h *handlers) cfgProfileApply(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), code)
 		return
 	}
-	writeJSON(w, map[string]interface{}{"restored": restored, "skipped": skipped, "count": len(restored)})
+	writeJSON(w, map[string]any{"restored": restored, "skipped": skipped, "count": len(restored)})
 }
 
 // applyProfileBySlug restores every game file in a saved profile over the live
@@ -512,7 +512,7 @@ func (h *handlers) cfgProfileDiff(w http.ResponseWriter, r *http.Request) {
 		d := util.DiffLines(string(cur), string(prof), 0)
 		files = append(files, fileChange{Path: name, Status: "changed", Added: d.Added, Removed: d.Removed})
 	}
-	writeJSON(w, map[string]interface{}{"files": files, "launch": launch, "same": same})
+	writeJSON(w, map[string]any{"files": files, "launch": launch, "same": same})
 }
 
 // cfgProfileDelete removes a saved profile.

@@ -427,7 +427,7 @@ func (a *App) RConPort() int {
 
 func (p Ports) list() map[int]string {
 	out := map[int]string{}
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		out[p.Game+i] = "game"
 	}
 	if p.Query > 0 {

@@ -199,7 +199,7 @@ func restartedByGuardian(managerDir string, now time.Time) bool {
 }
 
 // guardLog adds one line to the manager's log, in its format.
-func guardLog(managerDir, format string, a ...interface{}) {
+func guardLog(managerDir, format string, a ...any) {
 	f, err := os.OpenFile(filepath.Join(managerDir, "manager.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return

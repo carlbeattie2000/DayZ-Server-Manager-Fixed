@@ -176,8 +176,8 @@ func send(method, webhookURL string, m Message) ([]byte, error) {
 }
 
 func stripQuery(u string) string {
-	if i := strings.Index(u, "?"); i >= 0 {
-		return u[:i]
+	if before, _, ok := strings.Cut(u, "?"); ok {
+		return before
 	}
 	return u
 }

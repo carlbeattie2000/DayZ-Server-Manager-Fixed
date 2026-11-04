@@ -47,7 +47,7 @@ func TestCfgSnapshotIsRaceFree(t *testing.T) {
 	}()
 
 	// Readers: what a handler and the metrics poller do.
-	for r := 0; r < 4; r++ {
+	for range 4 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -71,7 +71,7 @@ func TestCfgSnapshotIsRaceFree(t *testing.T) {
 	}
 
 	// Enough iterations for the detector to see the pair.
-	for i := 0; i < 2000; i++ {
+	for range 2000 {
 		_ = a.Cfg()
 	}
 	close(stop)
@@ -100,7 +100,7 @@ func TestCfgMapSizesNotShared(t *testing.T) {
 			})
 		}
 	}()
-	for r := 0; r < 4; r++ {
+	for range 4 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

@@ -30,7 +30,7 @@ func writeTestPBO(t *testing.T, path string, files map[string]string) {
 		data.WriteString(content)
 	}
 	hdr.WriteByte(0)
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		u32(0)
 	}
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
@@ -90,7 +90,7 @@ func TestDetectAndSetUpModVehicles(t *testing.T) {
 		t.Fatalf("family = %+v", f)
 	}
 
-	body, _ := json.Marshal(map[string]interface{}{"mod": "@MyCars", "family": "MyCar_Base", "nominal": 3, "copyFrom": "VehicleCivilianSedan", "parts": true})
+	body, _ := json.Marshal(map[string]any{"mod": "@MyCars", "family": "MyCar_Base", "nominal": 3, "copyFrom": "VehicleCivilianSedan", "parts": true})
 	rec = httptest.NewRecorder()
 	h.vehiclesSetup(rec, httptest.NewRequest("POST", "/api/vehicles/setup", bytes.NewReader(body)))
 	if rec.Code != 400 {

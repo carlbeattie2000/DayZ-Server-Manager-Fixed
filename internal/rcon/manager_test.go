@@ -15,11 +15,11 @@ import (
 func TestManagerConcurrentCache(t *testing.T) {
 	m := NewManager()
 	var wg sync.WaitGroup
-	for i := 0; i < 64; i++ {
+	for range 64 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for j := 0; j < 20; j++ {
+			for range 20 {
 				_ = m.PlayersFresh(5 * time.Millisecond)
 				_, _ = m.PlayersCached(5 * time.Millisecond)
 				m.InvalidatePlayers()

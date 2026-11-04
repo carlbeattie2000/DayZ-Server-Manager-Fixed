@@ -58,7 +58,7 @@ func (h *handlers) mapMarkers(w http.ResponseWriter, r *http.Request) {
 	if list == nil {
 		list = []mapMarker{}
 	}
-	writeJSON(w, map[string]interface{}{"map": key, "markers": list})
+	writeJSON(w, map[string]any{"map": key, "markers": list})
 }
 
 // mapMarkersEdit adds, changes or deletes one marker of the current world:
@@ -151,7 +151,7 @@ func (h *handlers) mapMarkersEdit(w http.ResponseWriter, r *http.Request) {
 	if list == nil {
 		list = []mapMarker{}
 	}
-	writeJSON(w, map[string]interface{}{"map": key, "markers": list, "id": m.ID})
+	writeJSON(w, map[string]any{"map": key, "markers": list, "id": m.ID})
 }
 
 func newMarkerID() string {

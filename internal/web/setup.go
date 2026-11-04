@@ -67,5 +67,5 @@ func (h *handlers) setupChecklist(w http.ResponseWriter, r *http.Request) {
 			done++
 		}
 	}
-	writeJSON(w, map[string]interface{}{"items": items, "done": done, "total": len(items)})
+	writeJSON(w, map[string]any{"items": items, "done": done, "total": len(items)})
 }

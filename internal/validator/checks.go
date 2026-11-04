@@ -34,10 +34,10 @@ var ceFileTypes = map[string]bool{
 func checkTypeSanity(path string, t *dztypes.Type) []Issue {
 	var out []Issue
 	// args are the message's placeholders besides the type's name.
-	add := func(sev Severity, code, fix string, args map[string]string, format string, a ...interface{}) {
+	add := func(sev Severity, code, fix string, args map[string]string, format string, a ...any) {
 		args["name"] = t.Name
 		out = append(out, Issue{File: path, Severity: sev, Code: code, Fix: fix, Args: args,
-			Message: fmt.Sprintf("type %q: "+format, append([]interface{}{t.Name}, a...)...)})
+			Message: fmt.Sprintf("type %q: "+format, append([]any{t.Name}, a...)...)})
 	}
 
 	if strings.TrimSpace(t.Name) == "" {

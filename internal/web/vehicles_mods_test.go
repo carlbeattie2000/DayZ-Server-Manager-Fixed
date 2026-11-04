@@ -213,13 +213,13 @@ func TestVehiclesImportFromMod(t *testing.T) {
 	}
 
 	before, _ := os.ReadFile(filepath.Join(m, "db", "events.xml"))
-	body, _ := json.Marshal(map[string]interface{}{"mod": "@SuperCars", "events": []string{"VehicleSuperCar"}})
+	body, _ := json.Marshal(map[string]any{"mod": "@SuperCars", "events": []string{"VehicleSuperCar"}})
 	rec = httptest.NewRecorder()
 	h.vehiclesImport(rec, httptest.NewRequest("POST", "/api/vehicles/import", bytes.NewReader(body)))
 	if rec.Code != 200 {
 		t.Fatalf("import status %d: %s", rec.Code, rec.Body.String())
 	}
-	var res map[string]interface{}
+	var res map[string]any
 	_ = json.Unmarshal(rec.Body.Bytes(), &res)
 	if res["events"].(float64) != 1 || res["positions"].(float64) != 1 || res["parts"].(float64) != 1 || res["types"].(float64) != 2 {
 		t.Fatalf("result = %v", res)

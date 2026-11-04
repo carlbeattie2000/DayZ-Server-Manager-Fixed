@@ -413,7 +413,7 @@ func HasDesktop() bool { return hasDesktop() }
 func ShortcutsInstalled() bool { return desktopInstalled() }
 
 // Fatal logs and exits (used before a logger exists).
-func Fatal(format string, a ...interface{}) {
+func Fatal(format string, a ...any) {
 	log.Fatalf(format, a...)
 }
 
